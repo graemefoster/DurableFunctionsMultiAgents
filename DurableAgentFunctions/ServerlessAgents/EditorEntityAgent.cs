@@ -30,7 +30,7 @@ public class EditorEntityAgent: LlmAgentEntity
         "next" can be 'WRITER' or 'HUMAN'.
         """;
 
-    protected override IEnumerable<ChatMessage> BuildChatHistory(IEnumerable<AgentResponse> history)
+    protected override IEnumerable<ChatMessage> BuildChatHistory(IEnumerable<AgentConversationTypes.AgentResponse> history)
     {
         var storyDraft = history.Last(x => x.From.Equals("WRITER", StringComparison.InvariantCultureIgnoreCase));
         yield return new ChatMessage(ChatRole.Assistant, storyDraft.Message);
@@ -47,7 +47,7 @@ public class EditorEntityAgent: LlmAgentEntity
         }
     }
 
-    protected override async Task ApplyAgentCustomLogic(AgentResponse agentResponse)
+    protected override async Task ApplyAgentCustomLogic(AgentConversationTypes.AgentResponse agentResponse)
     {
         if (agentResponse.Next.Equals("HUMAN", StringComparison.InvariantCultureIgnoreCase))
         {

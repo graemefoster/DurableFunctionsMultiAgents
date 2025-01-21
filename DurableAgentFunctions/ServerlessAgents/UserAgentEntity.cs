@@ -18,7 +18,7 @@ public class UserAgentEntity : TaskEntity<AgentState>
         State = state;
     }
 
-    public async Task AskQuestion(AgentQuestionToHuman newMessagesToAgent)
+    public async Task AskQuestion(AgentConversationTypes.AgentQuestionToHuman newMessagesToAgent)
     {
         State.ChatHistory = State.ChatHistory.Concat([newMessagesToAgent.Question]).ToArray();
 
@@ -30,9 +30,9 @@ public class UserAgentEntity : TaskEntity<AgentState>
             newMessagesToAgent.EventName);
     }
     
-    public AgentResponse RecordResponse(string response)
+    public AgentConversationTypes.AgentResponse RecordResponse(string response)
     {
-        var agentResponse = new AgentResponse("HUMAN", "FACILITATOR", response);
+        var agentResponse = new AgentConversationTypes.AgentResponse("HUMAN", "FACILITATOR", response);
         State.ChatHistory = State.ChatHistory.Concat([agentResponse]).ToArray();
         return agentResponse;
     }

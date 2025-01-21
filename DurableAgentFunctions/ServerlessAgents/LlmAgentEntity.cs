@@ -20,7 +20,7 @@ public abstract class LlmAgentEntity : TaskEntity<AgentState>
         State = state;
     }
 
-    public async Task<AgentResponse> GetResponse(params AgentResponse[] newMessagesToAgent)
+    public async Task<AgentConversationTypes.AgentResponse> GetResponse(params AgentConversationTypes.AgentResponse[] newMessagesToAgent)
     {
         if (newMessagesToAgent.Any())
         {
@@ -41,17 +41,17 @@ public abstract class LlmAgentEntity : TaskEntity<AgentState>
                 ResponseFormat = ChatResponseFormat.Json
             });
         
-        var agentResponse = JsonConvert.DeserializeObject<AgentResponse>(response.Message.Text!)!;
+        var agentResponse = JsonConvert.DeserializeObject<AgentConversationTypes.AgentResponse>(response.Message.Text!)!;
         await ApplyAgentCustomLogic(agentResponse);
 
         return agentResponse;
     }
 
     protected virtual Task ApplyAgentCustomLogic(
-        AgentResponse agentResponse) =>
+        AgentConversationTypes.AgentResponse agentResponse) =>
         Task.CompletedTask;
 
-    protected virtual IEnumerable<ChatMessage> BuildChatHistory(IEnumerable<AgentResponse> history) => 
+    protected virtual IEnumerable<ChatMessage> BuildChatHistory(IEnumerable<AgentConversationTypes.AgentResponse> history) => 
         history.Select(x => new ChatMessage(x.From.Equals("HUMAN", StringComparison.InvariantCultureIgnoreCase) ? ChatRole.User : ChatRole.Assistant, x.Message));
 
 }

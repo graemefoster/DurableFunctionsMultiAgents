@@ -39,7 +39,7 @@ public static class Orchestration
             });
         }
         
-        var response = default(AgentResponse);
+        var response = default(AgentConversationTypes.AgentResponse);
         do
         {
             var nextAgent = response == null ? "FACILITATOR" : response.Next;
@@ -51,13 +51,13 @@ public static class Orchestration
                 await context.Entities.CallEntityAsync(
                     humanEntityNewId,
                     nameof(UserAgentEntity.AskQuestion),
-                    new AgentQuestionToHuman(
+                    new AgentConversationTypes.AgentQuestionToHuman(
                         eventName,
                         response!));
 
                 var userResponse = await context.WaitForExternalEvent<string>(eventName);
 
-                response = await context.Entities.CallEntityAsync<AgentResponse>(
+                response = await context.Entities.CallEntityAsync<AgentConversationTypes.AgentResponse>(
                     humanEntityNewId,
                     nameof(UserAgentEntity.RecordResponse),
                     userResponse);
@@ -65,8 +65,8 @@ public static class Orchestration
             else
             {
                 var agentEntityId = agents[nextAgent];
-                var inputMessages = response != null ? (AgentResponse[])[response] : [];
-                response = await context.Entities.CallEntityAsync<AgentResponse>(
+                var inputMessages = response != null ? (AgentConversationTypes.AgentResponse[])[response] : [];
+                response = await context.Entities.CallEntityAsync<AgentConversationTypes.AgentResponse>(
                     agentEntityId,
                     nameof(LlmAgentEntity.GetResponse),
                     inputMessages);
