@@ -1,6 +1,5 @@
 using System.ClientModel;
 using DurableAgentFunctions;
-using DurableAgentFunctions.ServerlessAgents;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.DurableTask.Client;
@@ -35,9 +34,6 @@ var chatClient = new Azure.AI.OpenAI.AzureOpenAIClient(
     .AsChatClient(settings.AoaiDeploymentName);
 
 builder.Services.AddSingleton(chatClient);
-builder.Services.AddSingleton<OrchestratorAgent>();
-builder.Services.AddSingleton<WriterAgent>();
-builder.Services.AddSingleton<EditorAgent>();
 
 builder.ConfigureFunctionsWebApplication();
 

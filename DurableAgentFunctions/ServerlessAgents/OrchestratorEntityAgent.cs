@@ -1,13 +1,12 @@
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.AI;
 
 namespace DurableAgentFunctions.ServerlessAgents;
 
-public class OrchestratorAgent : LlmAgent
+public class OrchestratorEntityAgent: LlmAgentEntity
 {
-    public OrchestratorAgent(IChatClient chatClient): base(chatClient)
-    {
-    }
-
+    public OrchestratorEntityAgent(IChatClient chatClient) : base(chatClient) { }
+    
     protected override string SystemPrompt =>
         """
         You are the coordinator who will help the user write a story. 
@@ -29,4 +28,9 @@ public class OrchestratorAgent : LlmAgent
         "next" can be 'WRITER', 'HUMAN', or 'END'.
         """;
 
+    [Function(nameof(OrchestratorEntityAgent))]
+    public static Task RunEntityAsync([EntityTrigger] TaskEntityDispatcher dispatcher)
+    {
+        return dispatcher.DispatchAsync<OrchestratorEntityAgent>();
+    }
 }

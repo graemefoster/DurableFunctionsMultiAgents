@@ -20,13 +20,13 @@ public class HttpFunctions
     [Function("StartNewChat")]
     public async Task<IActionResult> StartNewChat(
         [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req,
-        [Microsoft.Azure.Functions.Worker.Http.FromBody]BeginChatToHuman startContext)
+        [Microsoft.Azure.Functions.Worker.Http.FromBody]FunctionPayloads.BeginChatToHuman startContext)
     {
         _logger.LogInformation("Starting durable function. SignalR ConnectionId: {SignalrConnectionId}", startContext.SignalrChatIdentifier);
         
         //start a durable function that will end by notifying the SignalR hub
         string instanceId = await _durableTaskClient.ScheduleNewOrchestrationInstanceAsync(
-            "RequestChat",
+            nameof(Orchestration.RequestChat),
             startContext);
         
         return new OkObjectResult(instanceId);
@@ -48,7 +48,7 @@ public class HttpFunctions
     [Function("ResponseToQuestion")]
     public async Task<IActionResult> ResponseToQuestion(
         [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req,
-        [Microsoft.Azure.Functions.Worker.Http.FromBody] HumanResponseToAgentQuestion question)
+        [Microsoft.Azure.Functions.Worker.Http.FromBody] FunctionPayloads.HumanResponseToAgentQuestion question)
     {
         _logger.LogInformation("Received response to question. InstanceId: {InstanceId}, EventName: {EventName}, Response: {Response}", question.InstanceId, question.EventName, question.Response);
         await _durableTaskClient.RaiseEventAsync(question.InstanceId, question.EventName, question.Response);

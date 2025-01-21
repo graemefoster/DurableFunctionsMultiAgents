@@ -1,25 +1,25 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace DurableAgentFunctions.ServerlessAgents;
 
-public class EditorAgent: LlmAgent
+public class EditorEntityAgent: LlmAgentEntity
 {
-    public EditorAgent(IChatClient chatClient): base(chatClient)
+    private readonly HubConnection _hubConnection;
+    public EditorEntityAgent(IChatClient chatClient, HubConnection hubConnection) : base(chatClient)
     {
+        _hubConnection = hubConnection;
     }
-
+    
     protected override string SystemPrompt =>
         """
         You are a fabulous editor. 
         You will work with the writer to write a story, taking into account all Feedback.
-
+        
         You will be sent the writers story in markdown format. If you think it needs changing, respond with changes that should be made.
         If it's good, then we need the HUMAN to review it, so the next step is to target the 'HUMAN'.
-
+        
         Respond with JSON in the following format: 
         {
             "from": "EDITOR",
@@ -29,23 +29,7 @@ public class EditorAgent: LlmAgent
         
         "next" can be 'WRITER' or 'HUMAN'.
         """;
-    
-    protected override async Task ApplyAgentCustomLogic(FunctionContext context, PostProcessAgentResponse response)
-    {
-        if (response.Response.Next.Equals("HUMAN", StringComparison.InvariantCultureIgnoreCase))
-        {
-            var story = response.ChatHistory.Last(x =>
-                x.From.Equals("WRITER", StringComparison.InvariantCultureIgnoreCase));
-            
-            await NotifyUserStoryUpdate(
-                new AgentUpdateToHuman(response.SignalrChatIdentifier, story.Message),
-                context);
-        }
-    }
 
-    /// <summary>
-    /// Only want the latest draft of the story
-    /// </summary>
     protected override IEnumerable<ChatMessage> BuildChatHistory(IEnumerable<AgentResponse> history)
     {
         var storyDraft = history.Last(x => x.From.Equals("WRITER", StringComparison.InvariantCultureIgnoreCase));
@@ -61,20 +45,26 @@ public class EditorAgent: LlmAgent
                         : ChatRole.Assistant, agentResponse.Message);
             }
         }
+    }
+
+    protected override async Task ApplyAgentCustomLogic(AgentResponse agentResponse)
+    {
+        if (agentResponse.Next.Equals("HUMAN", StringComparison.InvariantCultureIgnoreCase))
+        {
+            var story = State.ChatHistory.Last(x =>
+                x.From.Equals("WRITER", StringComparison.InvariantCultureIgnoreCase));
+
+            await _hubConnection.InvokeAsync(
+                "NotifyAgentStoryResponse",
+                State.SignalrChatIdentifier,
+                story.Message);
+        }
 
     }
 
-    public async Task NotifyUserStoryUpdate(
-        [ActivityTrigger] AgentUpdateToHuman result,
-        FunctionContext executionContext)
+    [Function(nameof(EditorEntityAgent))]
+    public static Task RunEntityAsync([EntityTrigger] TaskEntityDispatcher dispatcher)
     {
-        var signalrHub = executionContext.InstanceServices.GetRequiredService<HubConnection>();
-        var logger = executionContext.GetLogger(nameof(NotifyUserStoryUpdate));
-
-        logger.LogInformation(
-            "Notifying agent of result: {result} from connection id: {connectionId}", result.Result,
-            result.SignalrChatIdentifier);
-
-        await signalrHub.InvokeAsync("NotifyAgentStoryResponse", result.SignalrChatIdentifier, result.Result);
+        return dispatcher.DispatchAsync<EditorEntityAgent>();
     }
 }
