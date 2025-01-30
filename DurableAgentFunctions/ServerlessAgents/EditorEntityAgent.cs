@@ -7,7 +7,7 @@ namespace DurableAgentFunctions.ServerlessAgents;
 public class EditorEntityAgent: LlmAgentEntity
 {
     private readonly HubConnection _hubConnection;
-    public EditorEntityAgent(IChatClient chatClient, HubConnection hubConnection) : base(chatClient)
+    public EditorEntityAgent(IChatClient chatClient, HubConnection hubConnection) : base(chatClient, hubConnection)
     {
         _hubConnection = hubConnection;
     }
@@ -18,7 +18,7 @@ public class EditorEntityAgent: LlmAgentEntity
         You will work with the writer to write a story, taking into account all Feedback.
         
         You will be sent the writers story in markdown format. If you think it needs changing, respond with changes that should be made.
-        If it's good, then we need the HUMAN to review it, so the next step is to target the 'HUMAN'.
+        If it's good, then we need the IMPROVER to review it. The IMPROVER will think of questions to make the document better.
         
         Respond with JSON in the following format: 
         {
@@ -27,7 +27,7 @@ public class EditorEntityAgent: LlmAgentEntity
             "message": "Show the story, Don't tell it."
         }
         
-        "next" can be 'WRITER' or 'HUMAN'.
+        "next" can be 'WRITER' or 'IMPROVER'.
         """;
 
     protected override IEnumerable<ChatMessage> BuildChatHistory(IEnumerable<AgentConversationTypes.AgentResponse> history)
@@ -49,7 +49,7 @@ public class EditorEntityAgent: LlmAgentEntity
 
     protected override async Task ApplyAgentCustomLogic(AgentConversationTypes.AgentResponse agentResponse)
     {
-        if (agentResponse.Next.Equals("HUMAN", StringComparison.InvariantCultureIgnoreCase))
+        if (agentResponse.Next.Equals("IMPROVER", StringComparison.InvariantCultureIgnoreCase))
         {
             var story = State.ChatHistory.Last(x =>
                 x.From.Equals("WRITER", StringComparison.InvariantCultureIgnoreCase));

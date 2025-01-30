@@ -18,6 +18,20 @@ public class AgentHub : Hub
     }
 
     //Should be authorised.
+    // ReSharper disable once UnusedMember.Global
+    public async Task AgentChitChat(string chatIdentifier, string from, string to, string message)
+    {
+        await Clients.Client(chatIdentifier).SendAsync("InternalAgentChitChat", from, to, message);
+    }
+
+    //Should be authorised.
+    // ReSharper disable once UnusedMember.Global
+    public async Task BroadcastPrompt(string chatIdentifier, string agent, string[] prompt)
+    {
+        await Clients.Client(chatIdentifier).SendAsync("InternalAgentPrompt", agent, prompt);
+    }
+
+    //Should be authorised.
     public async Task NotifyAgentResponse(string chatIdentifier, string result)
     {
         _logger.LogInformation("Received Agent Response: {result}", result);

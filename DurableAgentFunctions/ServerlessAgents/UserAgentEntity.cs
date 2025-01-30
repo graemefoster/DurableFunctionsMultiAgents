@@ -18,6 +18,10 @@ public class UserAgentEntity : TaskEntity<AgentState>
         State = state;
     }
 
+    public void AgentHasSpoken(AgentConversationTypes.AgentResponse response)
+    {
+    }
+
     public async Task AskQuestion(AgentConversationTypes.AgentQuestionToHuman newMessagesToAgent)
     {
         State.ChatHistory = State.ChatHistory.Concat([newMessagesToAgent.Question]).ToArray();

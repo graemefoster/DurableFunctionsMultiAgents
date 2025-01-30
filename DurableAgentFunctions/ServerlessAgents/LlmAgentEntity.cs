@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.DurableTask.Entities;
 using Microsoft.Extensions.AI;
 using Newtonsoft.Json;
@@ -7,10 +9,13 @@ namespace DurableAgentFunctions.ServerlessAgents;
 public abstract class LlmAgentEntity : TaskEntity<AgentState>
 {
     private readonly IChatClient _chatClient;
+    private readonly HubConnection _hubConnection;
+    private static readonly Regex MessageRegex = new("^([a-zA-Z0-9].*?)\\|([a-zA-Z0-9].*?)\\|");
 
-    public LlmAgentEntity(IChatClient chatClient)
+    public LlmAgentEntity(IChatClient chatClient, HubConnection hubConnection)
     {
         _chatClient = chatClient;
+        _hubConnection = hubConnection;
     }
     
     protected abstract string SystemPrompt { get; }
@@ -18,6 +23,14 @@ public abstract class LlmAgentEntity : TaskEntity<AgentState>
     public void Init(AgentState state)
     {
         State = state;
+    }
+
+    public void AgentHasSpoken(AgentConversationTypes.AgentResponse response)
+    {
+        if (response.From.Equals("WRITER", StringComparison.InvariantCultureIgnoreCase))
+        {
+            State.CurrentStory = response.Message;
+        }
     }
 
     public async Task<AgentConversationTypes.AgentResponse> GetResponse(params AgentConversationTypes.AgentResponse[] newMessagesToAgent)
@@ -43,9 +56,23 @@ public abstract class LlmAgentEntity : TaskEntity<AgentState>
         
         var agentResponse = JsonConvert.DeserializeObject<AgentConversationTypes.AgentResponse>(response.Message.Text!)!;
         await ApplyAgentCustomLogic(agentResponse);
+        await BroadcastPrompt(messages, agentResponse);
 
         return agentResponse;
     }
+    
+    
+    private async Task BroadcastPrompt(ChatMessage[] messages, AgentConversationTypes.AgentResponse response)
+    {
+        await _hubConnection.InvokeAsync("BroadcastPrompt", 
+            State.SignalrChatIdentifier, 
+            State.AgentName, 
+            messages
+                .Select(x => $"{x.Role.Value}: {x.Text}")
+                .Union([$"LLM RESPONSE -> {response.Next}: {response.Message}"])
+                .ToArray());
+    }
+
 
     protected virtual Task ApplyAgentCustomLogic(
         AgentConversationTypes.AgentResponse agentResponse) =>

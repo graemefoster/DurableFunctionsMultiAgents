@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.AI;
 
@@ -5,14 +6,14 @@ namespace DurableAgentFunctions.ServerlessAgents;
 
 public class WriterEntityAgent: LlmAgentEntity
 {
-    public WriterEntityAgent(IChatClient chatClient) : base(chatClient) { }
+    public WriterEntityAgent(IChatClient chatClient, HubConnection hubConnection) : base(chatClient, hubConnection) { }
     
     protected override string SystemPrompt =>
         """
         You are a fabulous writer. 
         You will work with the human and an expert editor, to write a story, taking into account all editor and human Feedback.
         
-        You must have enough information from the User before starting to write a story. Ask for more information if needed.
+        Work with what you're given. Don't ask for anymore feedback.
         
         Respond with JSON in the following format: 
         {
@@ -21,10 +22,9 @@ public class WriterEntityAgent: LlmAgentEntity
             "message": "...The story..."
         }
         
-        "next" must be either EDITOR or FACILITATOR, or END. 
+        "next" must be either EDITOR.
         
         Use EDITOR when you have a story to review. 
-        Use HUMAN when you need more information.
         """;
 
     [Function(nameof(WriterEntityAgent))]
