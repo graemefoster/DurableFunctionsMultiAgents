@@ -55,7 +55,7 @@ public abstract class LlmAgentEntity : TaskEntity<AgentState>
             });
         
         var agentResponse = JsonConvert.DeserializeObject<AgentConversationTypes.AgentResponse>(response.Message.Text!)!;
-        await ApplyAgentCustomLogic(agentResponse);
+        agentResponse = await ApplyAgentCustomLogic(agentResponse);
         await BroadcastPrompt(messages, agentResponse);
 
         return agentResponse;
@@ -74,9 +74,8 @@ public abstract class LlmAgentEntity : TaskEntity<AgentState>
     }
 
 
-    protected virtual Task ApplyAgentCustomLogic(
-        AgentConversationTypes.AgentResponse agentResponse) =>
-        Task.CompletedTask;
+    protected virtual Task<AgentConversationTypes.AgentResponse> ApplyAgentCustomLogic(
+        AgentConversationTypes.AgentResponse agentResponse) => Task.FromResult(agentResponse);
 
     protected virtual IEnumerable<ChatMessage> BuildChatHistory(IEnumerable<AgentConversationTypes.AgentResponse> history) => 
         history.Select(x => new ChatMessage(x.From.Equals("HUMAN", StringComparison.InvariantCultureIgnoreCase) ? ChatRole.User : ChatRole.Assistant, x.Message));

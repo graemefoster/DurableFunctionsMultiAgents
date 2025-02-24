@@ -69,7 +69,30 @@ public class AgentHub : Hub
             {
                 InstanceId = instanceId,
                 EventName = eventName,
-                Response = response
+                Response = response,
+                NextAgent = "WRITER"
+            });
+    }
+
+
+    // ReSharper disable once UnusedMember.Global
+    public async Task DiffResponse(string diff, string eventName)
+    {
+
+        var client = new HttpClient();
+        var instanceId = Context.Items["InstanceId"];
+        
+        _logger.LogInformation("Event name: {eventName}, InstanceId: {instanceId}", eventName, instanceId);
+        
+        await Clients.Caller.SendAsync("ReceiveDiff", "User", diff);
+        
+        var res = await client.PostAsJsonAsync("http://localhost:7115/api/ResponseToQuestion",
+            new
+            {
+                InstanceId = instanceId,
+                EventName = eventName,
+                Response = diff,
+                NextAgent = "DIFFER"
             });
     }
 
@@ -90,6 +113,7 @@ public class AgentHub : Hub
         }
 
         Context.Items["InstanceId"] = instanceId;
+        _logger.LogInformation("New chat started. InstanceId: {instanceId}. ConnectionId: {connectionId}", instanceId, Context.ConnectionId);
         await Clients.Caller.SendAsync("Agent", "New chat started! Let's go!");
     }
 }

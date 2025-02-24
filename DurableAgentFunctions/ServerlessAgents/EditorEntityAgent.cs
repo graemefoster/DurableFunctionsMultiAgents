@@ -32,34 +32,8 @@ public class EditorEntityAgent: LlmAgentEntity
 
     protected override IEnumerable<ChatMessage> BuildChatHistory(IEnumerable<AgentConversationTypes.AgentResponse> history)
     {
-        var storyDraft = history.Last(x => x.From.Equals("WRITER", StringComparison.InvariantCultureIgnoreCase));
-        yield return new ChatMessage(ChatRole.Assistant, storyDraft.Message);
-
-        foreach (var agentResponse in history)
-        {
-            if (!agentResponse.From.Equals("WRITER", StringComparison.InvariantCultureIgnoreCase))
-            {
-                yield return new ChatMessage(
-                    agentResponse.From.Equals("HUMAN", StringComparison.InvariantCultureIgnoreCase)
-                        ? ChatRole.User
-                        : ChatRole.Assistant, agentResponse.Message);
-            }
-        }
-    }
-
-    protected override async Task ApplyAgentCustomLogic(AgentConversationTypes.AgentResponse agentResponse)
-    {
-        if (agentResponse.Next.Equals("IMPROVER", StringComparison.InvariantCultureIgnoreCase))
-        {
-            var story = State.ChatHistory.Last(x =>
-                x.From.Equals("WRITER", StringComparison.InvariantCultureIgnoreCase));
-
-            await _hubConnection.InvokeAsync(
-                "NotifyAgentStoryResponse",
-                State.SignalrChatIdentifier,
-                story.Message);
-        }
-
+        //Only edit the current story. No point editing anything else
+        yield return new ChatMessage(ChatRole.Assistant, State.CurrentStory);
     }
 
     [Function(nameof(EditorEntityAgent))]

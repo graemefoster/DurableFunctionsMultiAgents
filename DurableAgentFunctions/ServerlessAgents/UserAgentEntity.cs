@@ -34,9 +34,9 @@ public class UserAgentEntity : TaskEntity<AgentState>
             newMessagesToAgent.EventName);
     }
     
-    public AgentConversationTypes.AgentResponse RecordResponse(string response)
+    public AgentConversationTypes.AgentResponse RecordResponse(FunctionPayloads.HumanResponseToAgentQuestion response)
     {
-        var agentResponse = new AgentConversationTypes.AgentResponse("HUMAN", "FACILITATOR", response);
+        var agentResponse = new AgentConversationTypes.AgentResponse("HUMAN", response.NextAgent, response.Response);
         State.ChatHistory = State.ChatHistory.Concat([agentResponse]).ToArray();
         return agentResponse;
     }

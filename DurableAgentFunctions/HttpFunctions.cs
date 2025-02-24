@@ -51,7 +51,7 @@ public class HttpFunctions
         [Microsoft.Azure.Functions.Worker.Http.FromBody] FunctionPayloads.HumanResponseToAgentQuestion question)
     {
         _logger.LogInformation("Received response to question. InstanceId: {InstanceId}, EventName: {EventName}, Response: {Response}", question.InstanceId, question.EventName, question.Response);
-        await _durableTaskClient.RaiseEventAsync(question.InstanceId, question.EventName, question.Response);
+        await _durableTaskClient.RaiseEventAsync(question.InstanceId, question.EventName, question);
         return new OkResult();
     }
 

@@ -5,6 +5,7 @@ import Story from './Story.tsx'
 import Chat from "./Chat.tsx";
 import AgentChitChat from "./AgentChitChat.tsx";
 import AgentCurrentPrompts from "./AgentCurrentPrompts.tsx";
+import {MDXEditor, MDXEditorMethods} from "@mdxeditor/editor";
 
 export type AgentChitChat = {
     from: string,
@@ -16,10 +17,15 @@ function App() {
 
     console.log('App repainting')
     const [connection, setConnection] = useState<HubConnection | null>(null)
-    const [story, setStory] = useState('')
+    const [previousStory, setPreviousStory] = useState('')
+    const [story, setStory] = useState('Story will appear here')
+    const [updatedStory, setUpdatedStory] = useState('Story will appear here')
     const [msgs, setMsgs] = useState<string[]>([])
     const [agentChitChat, setAgentChitChat] = useState<AgentChitChat[]>([])
     const [agentPrompts, setAgentPrompts] = useState<Record<string, string[]>>({})
+
+    const storyState = useRef<string>()
+    storyState.current = story
 
     const msgsState = useRef<string[]>()
     msgsState.current = msgs
@@ -29,6 +35,12 @@ function App() {
 
     const agentPromptsState = useRef<Record<string, string[]>>()
     agentPromptsState.current = agentPrompts
+
+    const ref = useRef<MDXEditorMethods>(null)
+    useEffect(() => {
+        ref.current?.setMarkdown(previousStory)
+    }, [previousStory]);
+
 
     useEffect(() => {
 
@@ -51,8 +63,11 @@ function App() {
                     const newState = msgsState.current!.concat([`${from}: ${question}`])
                     setMsgs(newState)
                 })
-                newConnection.on('ReceiveStoryMessage', (story: string) => {
-                    setStory(story)
+                newConnection.on('ReceiveStoryMessage', (newStory: string) => {
+                    setPreviousStory(storyState.current!)
+                    setStory(newStory)
+                    setUpdatedStory(newStory)
+                    console.log('Story received', newStory)
                 })
                 newConnection.on('InternalAgentChitChat', (from: string, to: string, message: string) => {
                     const newState = agentChitChatState.current!.concat([{from, to, message}])
@@ -85,10 +100,19 @@ function App() {
         <div className={""}>
             <div className={"row"}>
                 <div className={"col"}>
-                    <Chat connection={connection} msgs={msgs}/>
+                    <Chat connection={connection} msgs={msgs} story={story} updatedStory={updatedStory}/>
                 </div>
                 <div className={"col"}>
-                    <Story story={story}/>
+                    <div>
+                        <h3>Previous story</h3>
+                        <MDXEditor ref={ref} markdown={previousStory}/>
+                    </div>
+                </div>
+                <div className={"col"}>
+                    <Story story={updatedStory} onStoryEdit={(updatedStory) => {
+                        setUpdatedStory(updatedStory);
+                        console.log('Story changed')
+                    }}/>
                 </div>
                 <div className={"col"}>
                     <AgentChitChat agentChitChat={agentChitChat}/>
