@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.AI;
 
-namespace DurableAgentFunctions.ServerlessAgents;
+namespace DurableAgentFunctions.ServerlessAgents.Agents;
 
 public class WriterEntityAgent: LlmAgentEntity
 {
@@ -23,9 +23,9 @@ public class WriterEntityAgent: LlmAgentEntity
             "message": "...The story..."
         }
         
-        "next" must be either EDITOR.
+        "next" must be EDITOR or RESEARCHER. 
         
-        Use EDITOR when you have a story to review. 
+        Use EDITOR to check a story you've written for grammar. Use RESEARCHER if you need information from the internet to help you write the story.
         """;
 
     [Function(nameof(WriterEntityAgent))]

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.AI;
 
-namespace DurableAgentFunctions.ServerlessAgents;
+namespace DurableAgentFunctions.ServerlessAgents.Agents;
 
 public class DifferEntityAgent: LlmAgentEntity
 {

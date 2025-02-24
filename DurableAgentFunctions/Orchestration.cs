@@ -1,4 +1,5 @@
 using DurableAgentFunctions.ServerlessAgents;
+using DurableAgentFunctions.ServerlessAgents.Agents;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
@@ -19,24 +20,21 @@ public static class Orchestration
 
         var signalrChatIdentifier = beginChatToHuman.SignalrChatIdentifier;
 
-        // var orchestratorEntityNewId = new EntityInstanceId(nameof(OrchestratorEntityAgent), signalrChatIdentifier);
-        var writerEntityNewId = new EntityInstanceId(nameof(WriterEntityAgent), signalrChatIdentifier);
-        var editorEntityNewId = new EntityInstanceId(nameof(EditorEntityAgent), signalrChatIdentifier);
-        var humanEntityNewId = new EntityInstanceId(nameof(UserAgentEntity), signalrChatIdentifier);
-        var improverEntityNewId = new EntityInstanceId(nameof(ImproverAgentEntity), signalrChatIdentifier);
-        var differEntityNewId = new EntityInstanceId(nameof(DifferEntityAgent), signalrChatIdentifier);
+        var agents = ((string, string)[])
+        [
+            //("ORCHESTRATOR", nameof(OrchestratorEntityAgent)),
+            ("WRITER", nameof(WriterEntityAgent)),
+            ("EDITOR", nameof(EditorEntityAgent)),
+            ("HUMAN", nameof(UserAgentEntity)),
+            ("IMPROVER", nameof(ImproverAgentEntity)),
+            ("DIFFER", nameof(DifferEntityAgent))
+        ];
 
-        var agents = new Dictionary<string, EntityInstanceId>()
-        {
-            // ["FACILITATOR"] = orchestratorEntityNewId,
-            ["WRITER"] = writerEntityNewId,
-            ["EDITOR"] = editorEntityNewId,
-            ["HUMAN"] = humanEntityNewId,
-            ["IMPROVER"] = improverEntityNewId,
-            ["DIFFER"] = differEntityNewId
-        };
+        var agentMap = agents.ToDictionary(
+            x => x.Item1,
+            x => new EntityInstanceId(x.Item2, signalrChatIdentifier));
 
-        await InitialiseAllAgentsWithChatIdentifier(context, agents, signalrChatIdentifier);
+        await InitialiseAllAgentsWithChatIdentifier(context, agentMap, signalrChatIdentifier);
 
         var response = new AgentConversationTypes.AgentResponse(
             "WRITER",
@@ -45,41 +43,35 @@ public static class Orchestration
 
         do
         {
-            var nextAgentTasks = new List<Task<AgentConversationTypes.AgentResponse>>();
-            if (response.Next.Length == 1)
-            {
-                await RunAskOfSingleAgent(context, response, nextAgentTasks, humanEntityNewId, agents, signalrChatIdentifier);
-            }
+            response = await RunAskOfSingleAgent(context, response, agentMap["HUMAN"], agentMap);
         } while (response.Next != "END");
 
         logger.LogInformation("Chat ended. SignalR chat identifier: {signalrChatIdentifier}", signalrChatIdentifier);
     }
 
     private static async Task<AgentConversationTypes.AgentResponse> RunAskOfSingleAgent(
-        TaskOrchestrationContext context, 
-        AgentConversationTypes.AgentResponse response,
-        List<Task<AgentConversationTypes.AgentResponse>> nextAgentTasks, 
-        EntityInstanceId humanEntityNewId, 
-        Dictionary<string, EntityInstanceId> agents, 
-        string signalrChatIdentifier)
+        TaskOrchestrationContext context,
+        AgentConversationTypes.AgentResponse request,
+        EntityInstanceId humanEntityNewId,
+        Dictionary<string, EntityInstanceId> agents)
     {
-        
-        if (response.Next == "HUMAN")
+
+        var response = default(AgentConversationTypes.AgentResponse);
+        var nextAgent = agents[request.Next];
+        if (request.Next == "HUMAN")
         {
             //special agent where we go and wait for a response
             var random = context.NewGuid().ToString();
             var eventName = $"WaitForUserInput-{random}";
-            nextAgentTasks.Add(SignalHumanForResponse(context, response, humanEntityNewId, eventName));
+            response = await SignalHumanForResponse(context, request, humanEntityNewId, eventName);
         }
         else
         {
-            var agentEntityId = agents[response.Next];
-            nextAgentTasks.Add(context.Entities.CallEntityAsync<AgentConversationTypes.AgentResponse>(
-                agentEntityId,
+            response = await context.Entities.CallEntityAsync<AgentConversationTypes.AgentResponse>(
+                nextAgent,
                 nameof(LlmAgentEntity.GetResponse),
-                (AgentConversationTypes.AgentResponse[]) [response]));
+                (AgentConversationTypes.AgentResponse[]) [request]);
         }
-
 
         foreach (var entity in agents.Values)
         {
@@ -87,13 +79,6 @@ public static class Orchestration
                 entity,
                 nameof(LlmAgentEntity.AgentHasSpoken),
                 response);
-        }
-
-        if (response.Next != "HUMAN")
-        {
-            await context.CallActivityAsync(
-                nameof(BroadcastInternalConversationPiece),
-                new FunctionPayloads.AgentChitChat(signalrChatIdentifier, response));
         }
 
         return response;
@@ -126,25 +111,14 @@ public static class Orchestration
     {
         foreach (var kvp in agents)
         {
-            await context.Entities.CallEntityAsync(kvp.Value, nameof(LlmAgentEntity.Init), new AgentState
-            {
-                SignalrChatIdentifier = signalrChatIdentifier,
-                AgentName = kvp.Key
-            });
+            await context.Entities.CallEntityAsync(
+                kvp.Value,
+                nameof(LlmAgentEntity.Init),
+                new AgentState
+                {
+                    SignalrChatIdentifier = signalrChatIdentifier,
+                    AgentName = kvp.Key
+                });
         }
-    }
-
-    [Function(nameof(BroadcastInternalConversationPiece))]
-    public static async Task BroadcastInternalConversationPiece(
-        [ActivityTrigger] FunctionPayloads.AgentChitChat request,
-        FunctionContext context)
-    {
-        var hubConnection = context.InstanceServices.GetRequiredService<HubConnection>();
-        await hubConnection.InvokeAsync(
-            "AgentChitChat",
-            request.SignalrChatIdentifier,
-            request.Response.From,
-            request.Response.Next,
-            request.Response.Message);
     }
 }

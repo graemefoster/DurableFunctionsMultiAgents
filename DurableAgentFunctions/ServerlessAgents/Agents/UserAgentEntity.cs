@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask.Entities;
 
-namespace DurableAgentFunctions.ServerlessAgents;
+namespace DurableAgentFunctions.ServerlessAgents.Agents;
 
 public class UserAgentEntity : TaskEntity<AgentState>
 {

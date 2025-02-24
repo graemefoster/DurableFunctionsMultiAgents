@@ -56,7 +56,10 @@ public abstract class LlmAgentEntity : TaskEntity<AgentState>
         
         var agentResponse = JsonConvert.DeserializeObject<AgentConversationTypes.AgentResponse>(response.Message.Text!)!;
         agentResponse = await ApplyAgentCustomLogic(agentResponse);
+
         await BroadcastPrompt(messages, agentResponse);
+        
+        await BroadcastInternalChitChat(agentResponse);
 
         return agentResponse;
     }
@@ -73,7 +76,22 @@ public abstract class LlmAgentEntity : TaskEntity<AgentState>
                 .ToArray());
     }
 
-
+    /// <summary>
+    /// Shows all the interactive chit-chat between agents
+    /// </summary>
+    public async Task BroadcastInternalChitChat(
+        AgentConversationTypes.AgentResponse response)
+    {
+        if (response.Next != "HUMAN")
+        {
+            await _hubConnection.InvokeAsync(
+                "AgentChitChat",
+                State.SignalrChatIdentifier,
+                response.From,
+                response.Next,
+                response.Message);
+        }
+    }
     protected virtual Task<AgentConversationTypes.AgentResponse> ApplyAgentCustomLogic(
         AgentConversationTypes.AgentResponse agentResponse) => Task.FromResult(agentResponse);
 
