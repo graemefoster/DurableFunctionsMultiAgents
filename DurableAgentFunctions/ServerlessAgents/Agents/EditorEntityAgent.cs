@@ -6,10 +6,8 @@ namespace DurableAgentFunctions.ServerlessAgents.Agents;
 
 public class EditorEntityAgent: LlmAgentEntity
 {
-    private readonly HubConnection _hubConnection;
     public EditorEntityAgent(IChatClient chatClient, HubConnection hubConnection) : base(chatClient, hubConnection)
     {
-        _hubConnection = hubConnection;
     }
     
     protected override string SystemPrompt =>

@@ -1,44 +1,25 @@
-using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.DurableTask.Entities;
 using Microsoft.Extensions.AI;
 using Newtonsoft.Json;
 
 namespace DurableAgentFunctions.ServerlessAgents;
 
-public abstract class LlmAgentEntity : TaskEntity<AgentState>
+public abstract class LlmAgentEntity : AgentEntity
 {
     private readonly IChatClient _chatClient;
     private readonly HubConnection _hubConnection;
-    private static readonly Regex MessageRegex = new("^([a-zA-Z0-9].*?)\\|([a-zA-Z0-9].*?)\\|");
 
-    public LlmAgentEntity(IChatClient chatClient, HubConnection hubConnection)
+    public LlmAgentEntity(IChatClient chatClient, HubConnection hubConnection): base(hubConnection)
     {
         _chatClient = chatClient;
         _hubConnection = hubConnection;
     }
     
     protected abstract string SystemPrompt { get; }
-
-    public void Init(AgentState state)
+    
+    protected override async Task<AgentConversationTypes.AgentResponse> GetResponseInternal(AgentConversationTypes.AgentResponse newMessageToAgent)
     {
-        State = state;
-    }
-
-    public void AgentHasSpoken(AgentConversationTypes.AgentResponse response)
-    {
-        if (response.From.Equals("WRITER", StringComparison.InvariantCultureIgnoreCase))
-        {
-            State.CurrentStory = response.Message;
-        }
-    }
-
-    public async Task<AgentConversationTypes.AgentResponse> GetResponse(params AgentConversationTypes.AgentResponse[] newMessagesToAgent)
-    {
-        if (newMessagesToAgent.Any())
-        {
-            State.ChatHistory = State.ChatHistory.Concat(newMessagesToAgent).ToArray();
-        }
+        State.ChatHistory = State.ChatHistory.Concat([newMessageToAgent]).ToArray();
 
         var messages = new[]
             {
@@ -59,8 +40,6 @@ public abstract class LlmAgentEntity : TaskEntity<AgentState>
 
         await BroadcastPrompt(messages, agentResponse);
         
-        await BroadcastInternalChitChat(agentResponse);
-
         return agentResponse;
     }
     
@@ -76,22 +55,6 @@ public abstract class LlmAgentEntity : TaskEntity<AgentState>
                 .ToArray());
     }
 
-    /// <summary>
-    /// Shows all the interactive chit-chat between agents
-    /// </summary>
-    public async Task BroadcastInternalChitChat(
-        AgentConversationTypes.AgentResponse response)
-    {
-        if (response.Next != "HUMAN")
-        {
-            await _hubConnection.InvokeAsync(
-                "AgentChitChat",
-                State.SignalrChatIdentifier,
-                response.From,
-                response.Next,
-                response.Message);
-        }
-    }
     protected virtual Task<AgentConversationTypes.AgentResponse> ApplyAgentCustomLogic(
         AgentConversationTypes.AgentResponse agentResponse) => Task.FromResult(agentResponse);
 

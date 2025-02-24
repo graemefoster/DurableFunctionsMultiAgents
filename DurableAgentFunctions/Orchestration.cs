@@ -24,6 +24,7 @@ public static class Orchestration
         [
             //("ORCHESTRATOR", nameof(OrchestratorEntityAgent)),
             ("WRITER", nameof(WriterEntityAgent)),
+            ("RESEARCHER", nameof(ResearcherEntityAgent)),
             ("EDITOR", nameof(EditorEntityAgent)),
             ("HUMAN", nameof(UserAgentEntity)),
             ("IMPROVER", nameof(ImproverAgentEntity)),
@@ -69,15 +70,15 @@ public static class Orchestration
         {
             response = await context.Entities.CallEntityAsync<AgentConversationTypes.AgentResponse>(
                 nextAgent,
-                nameof(LlmAgentEntity.GetResponse),
-                (AgentConversationTypes.AgentResponse[]) [request]);
+                nameof(AgentEntity.GetResponse),
+                request);
         }
 
         foreach (var entity in agents.Values)
         {
             await context.Entities.CallEntityAsync(
                 entity,
-                nameof(LlmAgentEntity.AgentHasSpoken),
+                nameof(AgentEntity.AgentHasSpoken),
                 response);
         }
 
@@ -113,7 +114,7 @@ public static class Orchestration
         {
             await context.Entities.CallEntityAsync(
                 kvp.Value,
-                nameof(LlmAgentEntity.Init),
+                nameof(AgentEntity.Init),
                 new AgentState
                 {
                     SignalrChatIdentifier = signalrChatIdentifier,

@@ -13,7 +13,7 @@ public class WriterEntityAgent: LlmAgentEntity
         You are a fabulous writer.
         You will work with the human and an expert editor, to write a story, taking into account all editor and human Feedback.
         
-        Work with what you're given. Don't ask for anymore feedback. If you previously wrote a story you will be supplied it.
+        If you previously wrote a story you will be supplied it to alter it as appropriate.
         Don't completely rewrite it - just update it given the feedback. Unless the HUMAN's comments suggest you should throw it away and start again.
         
         Respond with JSON in the following format: 
@@ -25,7 +25,8 @@ public class WriterEntityAgent: LlmAgentEntity
         
         "next" must be EDITOR or RESEARCHER. 
         
-        Use EDITOR to check a story you've written for grammar. Use RESEARCHER if you need information from the internet to help you write the story.
+        Use EDITOR to check a story you've written for grammar. 
+        Use RESEARCHER if you need information from the internet to help you write the story. You should get upto date information if the user is asking about something that actually happened.
         """;
 
     [Function(nameof(WriterEntityAgent))]
