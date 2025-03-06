@@ -1,10 +1,8 @@
 using DurableAgentFunctions.ServerlessAgents;
 using DurableAgentFunctions.ServerlessAgents.Agents;
-using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Entities;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace DurableAgentFunctions;
