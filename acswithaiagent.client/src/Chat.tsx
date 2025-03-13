@@ -38,13 +38,15 @@ export default function ({connection, msgs, story, updatedStory}: ChatProps) {
 
     const [msg, setMsg] = useState('')
     const [questionId, setQuestionId] = useState<string | null>(null)
+    const [targetAgent, setTargetAgent ] = useState<string | null>(null)
     const [isChatting, setIsChatting] = useState(false)
 
     useEffect(() => {
 
             if (connection !== null) {
-                connection.on('AskQuestion', (_1: string, _2: string, eventName: string) => {
+                connection.on('AskQuestion', (fromAgent: string, _: string, eventName: string) => {
                     setQuestionId(eventName)
+                    setTargetAgent(fromAgent)
                 })
             }
         },
@@ -57,9 +59,10 @@ export default function ({connection, msgs, story, updatedStory}: ChatProps) {
     const question = questionId !== null && <div>
         <input type="text" onChange={e => setMsg(e.target.value)}/>
         <button onClick={() => {
-            connection!.invoke('UserResponse', msg, questionId)
+            connection!.invoke('UserResponse', targetAgent, msg, questionId)
                 .then(() => console.log('message sent'))
                 .then(() => setQuestionId(null))
+                .then(() => setTargetAgent(null))
                 .catch(e => console.log(e))
         }}>Reply
         </button>

@@ -6,6 +6,7 @@ namespace DurableAgentFunctions.ServerlessAgents;
 public abstract class AgentEntity : TaskEntity<AgentState>
 {
     private readonly HubConnection _hubConnection;
+    private static readonly string[] agentsThatReceiveNewStory = new [] {"IMPROVER", "END"};
 
     public AgentEntity(HubConnection hubConnection)
     {
@@ -19,9 +20,10 @@ public abstract class AgentEntity : TaskEntity<AgentState>
 
     public void AgentHasSpoken(AgentConversationTypes.AgentResponse response)
     {
+        var next = response.Next;
         //check for a new draft of the story and let agents know.
         if (response.From.Equals("WRITER", StringComparison.InvariantCultureIgnoreCase) 
-            && response.Next.Equals("EDITOR", StringComparison.InvariantCultureIgnoreCase))
+            && agentsThatReceiveNewStory.Contains(next))
         {
             State.CurrentStory = response.Message;
         }

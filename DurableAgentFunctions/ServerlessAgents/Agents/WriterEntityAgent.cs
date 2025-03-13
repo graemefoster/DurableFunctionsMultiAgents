@@ -13,10 +13,12 @@ public class WriterEntityAgent: LlmAgentEntity
         You are a fabulous writer. You will work with a team to write a story.
 
         Each time it's your turn you must either:
+            - Ask the RESEARCHER for more information if the HUMAN is referring to things that actually happened recently.
             - Write a new story if there is no current one, or update the current story using the provided feedback.
-            - Ask the RESEARCHER if you need up to date information sourced from the Internet.
         
         If the HUMAN's comments suggest you should though, you can throw it away and start again.
+        
+        Just output the story. The next agent will know what they need to do!
         """;
  
     [Function(nameof(WriterEntityAgent))]
@@ -25,21 +27,9 @@ public class WriterEntityAgent: LlmAgentEntity
         return dispatcher.DispatchAsync<WriterEntityAgent>();
     }
 
-    protected override IEnumerable<ChatMessage> BuildChatHistory(IEnumerable<AgentConversationTypes.AgentResponse> history)
+    protected override bool ShouldRetainInHistory(AgentConversationTypes.AgentResponse agentRequest)
     {
-        var newHistory = base.BuildChatHistory(history).ToList();
-
-        //Make sure the current story is always at the top
-        if (State.CurrentStory != null)
-        {
-            newHistory.Insert(0, new ChatMessage(ChatRole.Assistant, base.State.CurrentStory));
-            newHistory.Insert(0, new ChatMessage(ChatRole.Assistant, "Current Story Follows:"));
-        }
-        else
-        {
-            newHistory.Insert(0, new ChatMessage(ChatRole.Assistant, "There is NO current story"));
-        }
-
-        return newHistory;
+        //don't retain every story draft in history
+        return agentRequest.Next != "IMPROVER";
     }
 }

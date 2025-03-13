@@ -54,7 +54,7 @@ public class AgentHub : Hub
     }
 
     // ReSharper disable once UnusedMember.Global
-    public async Task UserResponse(string response, string eventName)
+    public async Task UserResponse(string targetAgent, string response, string eventName)
     {
 
         var client = new HttpClient();
@@ -70,7 +70,7 @@ public class AgentHub : Hub
                 InstanceId = instanceId,
                 EventName = eventName,
                 Response = response,
-                NextAgent = "WRITER"
+                NextAgent = targetAgent
             });
     }
 

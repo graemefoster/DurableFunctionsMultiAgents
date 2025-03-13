@@ -19,15 +19,9 @@ public class ImproverAgentEntity : LlmAgentEntity
 
         Each time it's your turn:
         - Try to think of follow up questions to ask the HUMAN to make the story better.
+        - Or relay the HUMAN's feedback to the WRITER so the WRITER can improve the story.
         
         """;
-
-    protected override IEnumerable<ChatMessage> BuildChatHistory(
-        IEnumerable<AgentConversationTypes.AgentResponse> history)
-    {
-        //Only improve on the current story. Don't bother with anything else
-        yield return new ChatMessage(ChatRole.Assistant, State.CurrentStory!);
-    }
 
     protected override async Task<AgentConversationTypes.AgentResponse> ApplyAgentCustomLogic(AgentConversationTypes.AgentResponse agentResponse)
     {

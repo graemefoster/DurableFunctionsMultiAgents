@@ -32,7 +32,7 @@ You MUST Respond with JSON object containing requests to other agents: It must b
         {
             "from": "{{State.AgentName}}",
             "next": "{{State.AgentsICanTalkTo.First().Name}}",
-            "message": "<output to this request based on your instructions>."
+            "message": "<output to send to the next agent>"
         }
     ]
 }
@@ -41,8 +41,6 @@ You can only talk to ONE agent. IF YOU TRY TO TALK TO MORE, WE WILL ONLY USE THE
 
 The available agents are:
 {{string.Join($"{Environment.NewLine}", State.AgentsICanTalkTo.Select(x => $"{x.Name} - {x.Capability}"))}}.
-
-The messages must be something that makes sense based on the agents description.
 
 Remember - the output must be in the format of the above JSON object.
 
@@ -63,11 +61,21 @@ Remember - the output must be in the format of the above JSON object.
          agentRequests = await Task.WhenAll(agentRequests.Select(ApplyAgentCustomLogic));
 
         await BroadcastPrompt(messages, agentRequests);
-        
+
+        foreach (var agentRequest in agentRequests)
+        {
+            if (ShouldRetainInHistory(agentRequest))
+            {
+                State.ChatHistory = State.ChatHistory.Concat([agentRequest]).ToArray();
+            }
+        }
+
         return agentRequests;
     }
-    
-    
+
+    protected virtual bool ShouldRetainInHistory(AgentConversationTypes.AgentResponse agentRequest) => true;
+
+
     private async Task BroadcastPrompt(ChatMessage[] messages, AgentConversationTypes.AgentResponse[] responses)
     {
         foreach (var response in responses)
@@ -85,7 +93,30 @@ Remember - the output must be in the format of the above JSON object.
     protected virtual Task<AgentConversationTypes.AgentResponse> ApplyAgentCustomLogic(
         AgentConversationTypes.AgentResponse agentResponse) => Task.FromResult(agentResponse);
 
-    protected virtual IEnumerable<ChatMessage> BuildChatHistory(IEnumerable<AgentConversationTypes.AgentResponse> history) => 
-        history.Select(x => new ChatMessage(x.From.Equals("HUMAN", StringComparison.InvariantCultureIgnoreCase) ? ChatRole.User : ChatRole.Assistant, $"From:{x.From} - {x.Message}"));
-
+    protected virtual IEnumerable<ChatMessage> BuildChatHistory(
+        IEnumerable<AgentConversationTypes.AgentResponse> history)
+    {
+        foreach (var message in history)
+        {
+            if (!(message is { From: "WRITER", Next: "IMPROVER" }))
+            {
+                yield return new ChatMessage(
+                    message.From.Equals("HUMAN", StringComparison.InvariantCultureIgnoreCase)
+                        ? ChatRole.User
+                        : ChatRole.Assistant,
+                    $"From:{message.From} to {message.Next} - {message.Message}");
+            }
+        }
+        
+        //Only improve on the current story. Don't bother with anything else
+        if (State.CurrentStory != null)
+        {
+            yield return  new ChatMessage(ChatRole.Assistant, "Latest Story Follows:");
+            yield return new ChatMessage(ChatRole.Assistant, base.State.CurrentStory);
+        }
+        else
+        {
+            yield return new ChatMessage(ChatRole.Assistant, "There is NO current story");
+        }
+    }
 }

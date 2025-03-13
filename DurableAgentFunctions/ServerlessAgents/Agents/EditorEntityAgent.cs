@@ -22,7 +22,8 @@ public class EditorEntityAgent: LlmAgentEntity
     protected override IEnumerable<ChatMessage> BuildChatHistory(IEnumerable<AgentConversationTypes.AgentResponse> history)
     {
         //Only edit the current story. No point editing anything else
-        yield return new ChatMessage(ChatRole.Assistant, $"Current story follows\n\n{State.CurrentStory}");
+        yield return new ChatMessage(ChatRole.Assistant, "Current Story Follows:");
+        yield return new ChatMessage(ChatRole.Assistant, base.State.CurrentStory);
     }
 
     [Function(nameof(EditorEntityAgent))]
