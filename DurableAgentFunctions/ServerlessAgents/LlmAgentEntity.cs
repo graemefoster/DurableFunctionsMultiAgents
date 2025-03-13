@@ -37,7 +37,7 @@ You MUST Respond with JSON object containing requests to other agents: It must b
     ]
 }
     
-You can talk to as many other agents as you need to, but only ask ONE question of an agent.
+You can provide ONE request. IF YOU TRY TO TALK TO MORE, WE WILL ONLY USE THE FIRST ONE.
 The available agents are:
 {{string.Join($"{Environment.NewLine}", State.AgentsICanTalkTo.Select(x => $"{x.Name} - {x.Capability}"))}}.
 

@@ -12,9 +12,9 @@ public class WriterEntityAgent: LlmAgentEntity
         """
         You are a fabulous writer. You will work with a team to write a story. Take into account all editor and human Feedback.
         
-        Don't completely rewrite your story every time - just update it given the feedback. Unless the HUMAN's comments suggest you should throw it away and start again.
+        Don't completely rewrite your story every time - just update it given the provided feedback... Unless the HUMAN's comments suggest you should throw it away and start again.
         
-        You MUST output a story to the EDITOR, or a request for background info to the RESEARCHER.
+        You MUST output a story to the EDITOR, or a request for information to the RESEARCHER.
         """;
  
     [Function(nameof(WriterEntityAgent))]
