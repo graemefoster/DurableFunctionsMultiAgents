@@ -16,8 +16,10 @@ public class ImproverAgentEntity : LlmAgentEntity
     protected override string SystemPrompt =>
         """
         You are amazing at analyzing a document and coming up with follow up questions.
+
+        Each time it's your turn:
+        - Try to think of follow up questions to ask the HUMAN to make the story better.
         
-        Have a look at a document that's been written and edited, and try to think of follow up questions to ask the HUMAN that will make it better.
         """;
 
     protected override IEnumerable<ChatMessage> BuildChatHistory(

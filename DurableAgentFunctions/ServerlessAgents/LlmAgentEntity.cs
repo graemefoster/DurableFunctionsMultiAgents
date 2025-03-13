@@ -32,18 +32,19 @@ You MUST Respond with JSON object containing requests to other agents: It must b
         {
             "from": "{{State.AgentName}}",
             "next": "{{State.AgentsICanTalkTo.First().Name}}",
-            "message": "<something that makes sense to ask of this agent>."
+            "message": "<output to this request based on your instructions>."
         }
     ]
 }
     
-You can provide ONE request. IF YOU TRY TO TALK TO MORE, WE WILL ONLY USE THE FIRST ONE.
+You can only talk to ONE agent. IF YOU TRY TO TALK TO MORE, WE WILL ONLY USE THE FIRST ONE.
+
 The available agents are:
 {{string.Join($"{Environment.NewLine}", State.AgentsICanTalkTo.Select(x => $"{x.Name} - {x.Capability}"))}}.
 
-The messages must be something that makes sense to ask the agents.
+The messages must be something that makes sense based on the agents description.
 
-Remember - the output must be the shown JSON object.
+Remember - the output must be in the format of the above JSON object.
 
 """")
             }

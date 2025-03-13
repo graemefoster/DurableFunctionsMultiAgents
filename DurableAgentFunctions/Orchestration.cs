@@ -18,15 +18,19 @@ public static class Orchestration
 
         var signalrChatIdentifier = beginChatToHuman.SignalrChatIdentifier;
 
+        int turnsSoFar = 0;
+
         var agents =
             new Dictionary<string, (string, string[], string)>()
             {
-                ["WRITER"] = (nameof(WriterEntityAgent), ["EDITOR", "RESEARCHER"],
+                ["END"] = (nameof(EndAgentEntity), [],
+                    "I will stop the conversation if everyone is happy!"),
+                ["WRITER"] = (nameof(WriterEntityAgent), ["EDITOR", "RESEARCHER", "END"],
                     "I can write stories based on the provided information."),
                 ["RESEARCHER"] = (nameof(ResearcherEntityAgent), [],
                     "I will search the Internet to find relevant information to shape the story."),
-                ["EDITOR"] = (nameof(EditorEntityAgent), ["WRITER", "IMPROVER"],
-                    "I can check a story and offer feedback if necessary to the writer."),
+                ["EDITOR"] = (nameof(EditorEntityAgent), ["IMPROVER"],
+                    "I will check the grammar and punctuation of the writer's story for them."),
                 ["HUMAN"] = (nameof(UserAgentEntity), [], ""),
                 ["IMPROVER"] = (nameof(ImproverAgentEntity), ["HUMAN"],
                     "I can look at a story and ask the HUMAN questions to improve the story."),
@@ -62,8 +66,9 @@ public static class Orchestration
         {
             
             responses = await RunAskOfAgents(context, responses, agentMap["HUMAN"].Item2, agentEntityIds);
-            
-        } while (responses.All(x => x.Next != "END"));
+            turnsSoFar += responses.Length; 
+
+        } while (turnsSoFar < 20 && responses.All(x => x.Next != "END"));
 
         logger.LogInformation("Chat ended. SignalR chat identifier: {signalrChatIdentifier}", signalrChatIdentifier);
     }

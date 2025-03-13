@@ -19,6 +19,7 @@ public abstract class AgentEntity : TaskEntity<AgentState>
 
     public void AgentHasSpoken(AgentConversationTypes.AgentResponse response)
     {
+        //check for a new draft of the story and let agents know.
         if (response.From.Equals("WRITER", StringComparison.InvariantCultureIgnoreCase) 
             && response.Next.Equals("EDITOR", StringComparison.InvariantCultureIgnoreCase))
         {

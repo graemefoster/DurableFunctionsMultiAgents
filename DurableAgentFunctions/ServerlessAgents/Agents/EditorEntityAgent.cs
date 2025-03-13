@@ -12,16 +12,17 @@ public class EditorEntityAgent: LlmAgentEntity
 
     protected override string SystemPrompt =>
         """
-        You are an EDITOR who specialises in grammar and punctuation. You will work with the writer to improve the grammar and punctuation in a story.
+        You are an EDITOR who specialises in grammar and punctuation. 
         
-        You will be sent the writers story in markdown format. If you think the grammar and punctuation need working on then let the writer know.
-        If the grammar and punctuation are good, then we need the IMPROVER to look at it. The IMPROVER will think of questions to ask a human to make the story better.
+        Each time it's your turn:
+            - Fix the punctuation and grammar if necessary, and output the new story.
+        
         """;
 
     protected override IEnumerable<ChatMessage> BuildChatHistory(IEnumerable<AgentConversationTypes.AgentResponse> history)
     {
         //Only edit the current story. No point editing anything else
-        yield return new ChatMessage(ChatRole.Assistant, State.CurrentStory);
+        yield return new ChatMessage(ChatRole.Assistant, $"Current story follows\n\n{State.CurrentStory}");
     }
 
     [Function(nameof(EditorEntityAgent))]

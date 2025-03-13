@@ -18,9 +18,7 @@ public class UserAgentEntity : TaskEntity<AgentState>
         State = state;
     }
 
-    public void AgentHasSpoken(AgentConversationTypes.AgentResponse response)
-    {
-    }
+    public void AgentHasSpoken(AgentConversationTypes.AgentResponse response) { }
 
     public async Task AskQuestion(AgentConversationTypes.AgentQuestionToHuman newMessagesToAgent)
     {

@@ -23,7 +23,7 @@ public class ResearcherEntityAgent: AgentEntity
             new AgentConversationTypes.AgentResponse(
                 "RESEARCHER",
                 "WRITER",
-                "It finished 2-0 to Liverpool. Goals were scored by Mo Salah and Dominik Szoboszlai. Liverpool are now 11 points clear at the top of the premier league. City are in freefall. they are now 4th. It's been a shocking season for them. Liverpool's manager is now Slot.")
+                "Here's what I found about it: It finished 2-0 to Liverpool. Goals were scored by Mo Salah and Dominik Szoboszlai. Liverpool are now 11 points clear at the top of the premier league. City are in freefall. they are now 4th. It's been a shocking season for them. Liverpool's manager is now Slot.")
         });
     }
 }

@@ -10,11 +10,13 @@ public class WriterEntityAgent: LlmAgentEntity
 
     protected override string SystemPrompt =>
         """
-        You are a fabulous writer. You will work with a team to write a story. Take into account all editor and human Feedback.
+        You are a fabulous writer. You will work with a team to write a story.
+
+        Each time it's your turn you must either:
+            - Write a new story if there is no current one, or update the current story using the provided feedback.
+            - Ask the RESEARCHER if you need up to date information sourced from the Internet.
         
-        Don't completely rewrite your story every time - just update it given the provided feedback... Unless the HUMAN's comments suggest you should throw it away and start again.
-        
-        You MUST output a story to the EDITOR, or a request for information to the RESEARCHER.
+        If the HUMAN's comments suggest you should though, you can throw it away and start again.
         """;
  
     [Function(nameof(WriterEntityAgent))]
@@ -32,6 +34,10 @@ public class WriterEntityAgent: LlmAgentEntity
         {
             newHistory.Insert(0, new ChatMessage(ChatRole.Assistant, base.State.CurrentStory));
             newHistory.Insert(0, new ChatMessage(ChatRole.Assistant, "Current Story Follows:"));
+        }
+        else
+        {
+            newHistory.Insert(0, new ChatMessage(ChatRole.Assistant, "There is NO current story"));
         }
 
         return newHistory;
