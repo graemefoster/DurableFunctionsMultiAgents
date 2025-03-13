@@ -36,8 +36,8 @@ You MUST Respond with JSON object containing requests to other agents: It must b
         }
     ]
 }
-
-You can talk to as many other agents as you need to.
+    
+You can talk to as many other agents as you need to, but only ask ONE question of an agent.
 The available agents are:
 {{string.Join($"{Environment.NewLine}", State.AgentsICanTalkTo.Select(x => $"{x.Name} - {x.Capability}"))}}.
 
@@ -59,7 +59,7 @@ Remember - the output must be the shown JSON object.
         
         var agentResponse = JsonConvert.DeserializeObject<AgentConversationTypes.AgentResponses>(response.Message.Text!)!;
         var agentRequests = agentResponse.Requests;
-        agentRequests = await Task.WhenAll(agentRequests.Select(ApplyAgentCustomLogic));
+         agentRequests = await Task.WhenAll(agentRequests.Select(ApplyAgentCustomLogic));
 
         await BroadcastPrompt(messages, agentRequests);
         
@@ -85,6 +85,6 @@ Remember - the output must be the shown JSON object.
         AgentConversationTypes.AgentResponse agentResponse) => Task.FromResult(agentResponse);
 
     protected virtual IEnumerable<ChatMessage> BuildChatHistory(IEnumerable<AgentConversationTypes.AgentResponse> history) => 
-        history.Select(x => new ChatMessage(x.From.Equals("HUMAN", StringComparison.InvariantCultureIgnoreCase) ? ChatRole.User : ChatRole.Assistant, x.Message));
+        history.Select(x => new ChatMessage(x.From.Equals("HUMAN", StringComparison.InvariantCultureIgnoreCase) ? ChatRole.User : ChatRole.Assistant, $"From:{x.From} - {x.Message}"));
 
 }

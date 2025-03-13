@@ -12,11 +12,10 @@ public class EditorEntityAgent: LlmAgentEntity
 
     protected override string SystemPrompt =>
         """
-        You are a fabulous editor. 
-        You will work with the writer to write a story, taking into account all Feedback.
+        You are an EDITOR who specialises in grammar and punctuation. You will work with the writer to improve the grammar and punctuation in a story.
         
-        You will be sent the writers story in markdown format. If you think it needs changing, respond with changes that should be made.
-        If it's good, then we need the IMPROVER to review it. The IMPROVER will think of questions to make the document better.
+        You will be sent the writers story in markdown format. If you think the grammar and punctuation need working on then let the writer know.
+        If the grammar and punctuation are good, then we need the IMPROVER to look at it. The IMPROVER will think of questions to ask a human to make the story better.
         """;
 
     protected override IEnumerable<ChatMessage> BuildChatHistory(IEnumerable<AgentConversationTypes.AgentResponse> history)

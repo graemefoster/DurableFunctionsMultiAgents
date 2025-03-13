@@ -10,13 +10,11 @@ public class WriterEntityAgent: LlmAgentEntity
 
     protected override string SystemPrompt =>
         """
-        You are a fabulous writer.
-
-        You will work with a team to write a story. Take into account all editor and human Feedback.
+        You are a fabulous writer. You will work with a team to write a story. Take into account all editor and human Feedback.
+        
         Don't completely rewrite your story every time - just update it given the feedback. Unless the HUMAN's comments suggest you should throw it away and start again.
         
-        You MUST write a story though. That's your job. Only return the story. Don't return any other text.
-        
+        You MUST output a story to the EDITOR, or a request for background info to the RESEARCHER.
         """;
  
     [Function(nameof(WriterEntityAgent))]

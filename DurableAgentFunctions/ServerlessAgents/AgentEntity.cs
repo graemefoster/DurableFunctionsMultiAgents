@@ -19,7 +19,8 @@ public abstract class AgentEntity : TaskEntity<AgentState>
 
     public void AgentHasSpoken(AgentConversationTypes.AgentResponse response)
     {
-        if (response.From.Equals("WRITER", StringComparison.InvariantCultureIgnoreCase))
+        if (response.From.Equals("WRITER", StringComparison.InvariantCultureIgnoreCase) 
+            && response.Next.Equals("EDITOR", StringComparison.InvariantCultureIgnoreCase))
         {
             State.CurrentStory = response.Message;
         }
