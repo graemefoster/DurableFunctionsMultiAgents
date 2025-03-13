@@ -1,0 +1,11 @@
+{
+    "IsEncrypted": false,
+    "Values": {
+        "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+        "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+        "SIGNALR_URL": "https://localhost:7026/signalr/agenthub",
+        "AOAI_URL": "",
+        "AOAI_KEY": "",
+        "AOAI_DEPLOYMENT": ""
+    }
+}
