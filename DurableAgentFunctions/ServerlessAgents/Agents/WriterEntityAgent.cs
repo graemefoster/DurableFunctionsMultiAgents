@@ -7,28 +7,18 @@ namespace DurableAgentFunctions.ServerlessAgents.Agents;
 public class WriterEntityAgent: LlmAgentEntity
 {
     public WriterEntityAgent(IChatClient chatClient, HubConnection hubConnection) : base(chatClient, hubConnection) { }
-    
+
     protected override string SystemPrompt =>
         """
         You are a fabulous writer.
-        You will work with the human and an expert editor, to write a story, taking into account all editor and human Feedback.
-        
-        If you previously wrote a story you will be supplied it to alter it as appropriate.
-        Don't completely rewrite it - just update it given the feedback. Unless the HUMAN's comments suggest you should throw it away and start again.
-        
-        Respond with JSON in the following format: 
-        {
-            "from": "WRITER",
-            "next": "EDITOR",
-            "message": "...The story..."
-        }
-        
-        "next" must be EDITOR or RESEARCHER. 
-        
-        Use EDITOR to check a story you've written for grammar. 
-        Use RESEARCHER if you need information from the internet to help you write the story. You should get upto date information if the user is asking about something that actually happened.
-        """;
 
+        You will work with a team to write a story. Take into account all editor and human Feedback.
+        Don't completely rewrite your story every time - just update it given the feedback. Unless the HUMAN's comments suggest you should throw it away and start again.
+        
+        You MUST write a story though. That's your job. Only return the story. Don't return any other text.
+        
+        """;
+ 
     [Function(nameof(WriterEntityAgent))]
     public static Task RunEntityAsync([EntityTrigger] TaskEntityDispatcher dispatcher)
     {

@@ -9,7 +9,7 @@ public class DifferEntityAgent: LlmAgentEntity
     public DifferEntityAgent(IChatClient chatClient, HubConnection hubConnection) : base(chatClient, hubConnection)
     {
     }
-    
+
     protected override string SystemPrompt =>
         """
         You are a great analyser of content and you have a remarkable ability to look at a git diff of text, and summarise 
@@ -18,18 +18,6 @@ public class DifferEntityAgent: LlmAgentEntity
         If the user has really just replaced the original content then response with a message that says "NEW_CONTENT".
         If the only changes are to whitespace, then respond with a message that says "NO_CHANGE".
         Else respond with a message that captures the intent of the change.
-        
-        Respond with JSON in the following format: 
-        {
-            "from": "DIFFER",
-            "next": "WRITER",
-            "message": "The user has changed the score from 1-0 to 5-0. The user changed the main striker's name to Ollie."
-        }
-        
-        "next" can be 'WRITER' or 'HUMAN'.
-
-        Use 'WRITER' when the user has made changes to incorporate to the story. 
-        Use 'HUMAN' when not much changed.
         """;
 
     protected override IEnumerable<ChatMessage> BuildChatHistory(

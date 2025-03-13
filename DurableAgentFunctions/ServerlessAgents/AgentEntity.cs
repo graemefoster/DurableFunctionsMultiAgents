@@ -25,19 +25,19 @@ public abstract class AgentEntity : TaskEntity<AgentState>
         }
     }
 
-    public async Task<AgentConversationTypes.AgentResponse> GetResponse(AgentConversationTypes.AgentResponse newMessageToAgent)
+    public async Task<AgentConversationTypes.AgentResponse[]> GetResponse(AgentConversationTypes.AgentResponse newMessageToAgent)
     {
-        var response = await GetResponseInternal(newMessageToAgent);
-        await BroadcastInternalChitChat(response);
-        return response;
+        var responses = await GetResponseInternal(newMessageToAgent);
+        foreach(var response in responses) await BroadcastInternalChitChat(response);
+        return responses;
     }
 
-    protected abstract Task<AgentConversationTypes.AgentResponse> GetResponseInternal(AgentConversationTypes.AgentResponse newMessageToAgent);
+    protected abstract Task<AgentConversationTypes.AgentResponse[]> GetResponseInternal(AgentConversationTypes.AgentResponse newMessageToAgent);
 
     /// <summary>
     /// Shows all the interactive chit-chat between agents
     /// </summary>
-    public async Task BroadcastInternalChitChat(
+    private async Task BroadcastInternalChitChat(
         AgentConversationTypes.AgentResponse response)
     {
         if (response.Next != "HUMAN")

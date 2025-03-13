@@ -17,13 +17,35 @@ public abstract class LlmAgentEntity : AgentEntity
     
     protected abstract string SystemPrompt { get; }
     
-    protected override async Task<AgentConversationTypes.AgentResponse> GetResponseInternal(AgentConversationTypes.AgentResponse newMessageToAgent)
+    protected override async Task<AgentConversationTypes.AgentResponse[]> GetResponseInternal(AgentConversationTypes.AgentResponse newMessageToAgent)
     {
         State.ChatHistory = State.ChatHistory.Concat([newMessageToAgent]).ToArray();
 
         var messages = new[]
             {
-                new ChatMessage(ChatRole.System, SystemPrompt)
+                new ChatMessage(ChatRole.System, SystemPrompt + 
+                    $$""""
+
+You MUST Respond with JSON object containing requests to other agents: It must be in this format:
+{
+    requests: [
+        {
+            "from": "{{State.AgentName}}",
+            "next": "{{State.AgentsICanTalkTo.First().Name}}",
+            "message": "<something that makes sense to ask of this agent>."
+        }
+    ]
+}
+
+You can talk to as many other agents as you need to.
+The available agents are:
+{{string.Join($"{Environment.NewLine}", State.AgentsICanTalkTo.Select(x => $"{x.Name} - {x.Capability}"))}}.
+
+The messages must be something that makes sense to ask the agents.
+
+Remember - the output must be the shown JSON object.
+
+"""")
             }
             .Concat(BuildChatHistory(State.ChatHistory))
             .ToArray();
@@ -35,24 +57,28 @@ public abstract class LlmAgentEntity : AgentEntity
                 ResponseFormat = ChatResponseFormat.Json
             });
         
-        var agentResponse = JsonConvert.DeserializeObject<AgentConversationTypes.AgentResponse>(response.Message.Text!)!;
-        agentResponse = await ApplyAgentCustomLogic(agentResponse);
+        var agentResponse = JsonConvert.DeserializeObject<AgentConversationTypes.AgentResponses>(response.Message.Text!)!;
+        var agentRequests = agentResponse.Requests;
+        agentRequests = await Task.WhenAll(agentRequests.Select(ApplyAgentCustomLogic));
 
-        await BroadcastPrompt(messages, agentResponse);
+        await BroadcastPrompt(messages, agentRequests);
         
-        return agentResponse;
+        return agentRequests;
     }
     
     
-    private async Task BroadcastPrompt(ChatMessage[] messages, AgentConversationTypes.AgentResponse response)
+    private async Task BroadcastPrompt(ChatMessage[] messages, AgentConversationTypes.AgentResponse[] responses)
     {
-        await _hubConnection.InvokeAsync("BroadcastPrompt", 
-            State.SignalrChatIdentifier, 
-            State.AgentName, 
-            messages
-                .Select(x => $"{x.Role.Value}: {x.Text}")
-                .Union([$"LLM RESPONSE -> {response.Next}: {response.Message}"])
-                .ToArray());
+        foreach (var response in responses)
+        {
+            await _hubConnection.InvokeAsync("BroadcastPrompt",
+                State.SignalrChatIdentifier,
+                State.AgentName,
+                messages
+                    .Select(x => $"{x.Role.Value}: {x.Text}")
+                    .Union([$"LLM RESPONSE -> {response.Next}: {response.Message}"])
+                    .ToArray());
+        }
     }
 
     protected virtual Task<AgentConversationTypes.AgentResponse> ApplyAgentCustomLogic(

@@ -17,16 +17,6 @@ public class ImproverAgentEntity : LlmAgentEntity
         """
         You are amazing at analyzing a document and coming up with follow up questions.
         Have a look at a document that's been written and edited, and try to think of follow up questions that will make it better.
-
-        Respond with JSON in the following format: 
-        {
-            "from": "IMPROVER",
-            "next": "HUMAN",
-            "message": "<thought provoking questions to improve the story>."
-        }
-
-        "next" has to be "HUMAN". 
-        The message should be one or more questions that will provoke the human to make the story better.
         """;
 
     protected override IEnumerable<ChatMessage> BuildChatHistory(

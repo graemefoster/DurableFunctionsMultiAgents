@@ -18,55 +18,86 @@ public static class Orchestration
 
         var signalrChatIdentifier = beginChatToHuman.SignalrChatIdentifier;
 
-        var agents = ((string, string)[])
-        [
-            //("ORCHESTRATOR", nameof(OrchestratorEntityAgent)),
-            ("WRITER", nameof(WriterEntityAgent)),
-            ("RESEARCHER", nameof(ResearcherEntityAgent)),
-            ("EDITOR", nameof(EditorEntityAgent)),
-            ("HUMAN", nameof(UserAgentEntity)),
-            ("IMPROVER", nameof(ImproverAgentEntity)),
-            ("DIFFER", nameof(DifferEntityAgent))
-        ];
+        var agents =
+            new Dictionary<string, (string, string[], string)>()
+            {
+                ["WRITER"] = (nameof(WriterEntityAgent), ["EDITOR", "RESEARCHER"],
+                    "I can write stories based on the provided information."),
+                ["RESEARCHER"] = (nameof(ResearcherEntityAgent), [],
+                    "I will search the Internet to find relevant information to shape the story."),
+                ["EDITOR"] = (nameof(EditorEntityAgent), ["WRITER", "IMPROVER"],
+                    "I can check a story and offer feedback if necessary to the writer."),
+                ["HUMAN"] = (nameof(UserAgentEntity), [], ""),
+                ["IMPROVER"] = (nameof(ImproverAgentEntity), ["HUMAN"],
+                    "I can look at a story and ask the HUMAN questions to improve the story."),
+                ["DIFFER"] = (nameof(DifferEntityAgent), ["WRITER"],
+                    "I can look at edits made to a story by the HUMAN, and tell the WRITER what needs to be changed."),
+            };
 
         var agentMap = agents.ToDictionary(
-            x => x.Item1,
-            x => new EntityInstanceId(x.Item2, signalrChatIdentifier));
+            x => x.Key,
+            x => (
+                new AgentState()
+                {
+                    AgentName = x.Key,
+                    AgentsICanTalkTo = x.Value.Item2.Select(x => new FriendAgent() { Name = x, Capability = agents[x].Item3 }).ToArray(),
+                    AgentSummary = x.Value.Item3,
+                    SignalrChatIdentifier = signalrChatIdentifier
+                }, 
+                new EntityInstanceId(x.Value.Item1, signalrChatIdentifier)));
 
-        await InitialiseAllAgentsWithChatIdentifier(context, agentMap, signalrChatIdentifier);
+        var agentEntityIds = agentMap.ToDictionary(x => x.Key, x => x.Value.Item2);
 
-        var response = new AgentConversationTypes.AgentResponse(
-            "WRITER",
-            "HUMAN",
-            "Let's start with an idea for a story");
+        await InitialiseAllAgentsWithChatIdentifier(context, agentMap);
+
+        var responses = new[]
+        {
+            new AgentConversationTypes.AgentResponse(
+                "WRITER",
+                "HUMAN",
+                "Let's start with an idea for a story")
+        };
 
         do
         {
-            response = await RunAskOfSingleAgent(context, response, agentMap["HUMAN"], agentMap);
-        } while (response.Next != "END");
+            
+            responses = await RunAskOfAgents(context, responses, agentMap["HUMAN"].Item2, agentEntityIds);
+            
+        } while (responses.All(x => x.Next != "END"));
 
         logger.LogInformation("Chat ended. SignalR chat identifier: {signalrChatIdentifier}", signalrChatIdentifier);
     }
 
-    private static async Task<AgentConversationTypes.AgentResponse> RunAskOfSingleAgent(
+    private static async Task<AgentConversationTypes.AgentResponse[]> RunAskOfAgents(
+        TaskOrchestrationContext context,
+        AgentConversationTypes.AgentResponse[] requests,
+        EntityInstanceId humanEntityNewId,
+        Dictionary<string, EntityInstanceId> agents)
+    {
+        
+        var allResponses = await Task.WhenAll(requests.Select(x => RunAskOfSingleAgent(context, x, humanEntityNewId, agents)));
+        return allResponses.SelectMany(x => x).ToArray();
+    }
+
+    private static async Task<AgentConversationTypes.AgentResponse[]> RunAskOfSingleAgent(
         TaskOrchestrationContext context,
         AgentConversationTypes.AgentResponse request,
         EntityInstanceId humanEntityNewId,
         Dictionary<string, EntityInstanceId> agents)
     {
+        AgentConversationTypes.AgentResponse[] responses;
 
-        var response = default(AgentConversationTypes.AgentResponse);
         var nextAgent = agents[request.Next];
         if (request.Next == "HUMAN")
         {
             //special agent where we go and wait for a response
             var random = context.NewGuid().ToString();
             var eventName = $"WaitForUserInput-{random}";
-            response = await SignalHumanForResponse(context, request, humanEntityNewId, eventName);
+            responses = [await SignalHumanForResponse(context, request, humanEntityNewId, eventName)];
         }
         else
         {
-            response = await context.Entities.CallEntityAsync<AgentConversationTypes.AgentResponse>(
+            responses = await context.Entities.CallEntityAsync<AgentConversationTypes.AgentResponse[]>(
                 nextAgent,
                 nameof(AgentEntity.GetResponse),
                 request);
@@ -74,14 +105,18 @@ public static class Orchestration
 
         foreach (var entity in agents.Values)
         {
-            await context.Entities.CallEntityAsync(
-                entity,
-                nameof(AgentEntity.AgentHasSpoken),
-                response);
+            foreach (var response in responses)
+            {
+                await context.Entities.CallEntityAsync(
+                    entity,
+                    nameof(AgentEntity.AgentHasSpoken),
+                    response);
+            }
         }
 
-        return response;
+        return responses;
     }
+
 
     private static async Task<AgentConversationTypes.AgentResponse> SignalHumanForResponse(
         TaskOrchestrationContext context,
@@ -104,20 +139,17 @@ public static class Orchestration
             userResponse);
     }
 
-    private static async Task InitialiseAllAgentsWithChatIdentifier(TaskOrchestrationContext context,
-        Dictionary<string, EntityInstanceId> agents,
-        string signalrChatIdentifier)
+    private static async Task InitialiseAllAgentsWithChatIdentifier(
+        TaskOrchestrationContext context,
+        Dictionary<string, (AgentState, EntityInstanceId)> agents)
     {
         foreach (var kvp in agents)
         {
             await context.Entities.CallEntityAsync(
-                kvp.Value,
+                kvp.Value.Item2,
                 nameof(AgentEntity.Init),
-                new AgentState
-                {
-                    SignalrChatIdentifier = signalrChatIdentifier,
-                    AgentName = kvp.Key
-                });
+                kvp.Value.Item1
+                );
         }
     }
 }
