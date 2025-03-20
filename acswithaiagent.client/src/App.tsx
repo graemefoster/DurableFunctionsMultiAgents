@@ -99,27 +99,24 @@ function App() {
     return (
         <div className={'m-5'}>
             <div className={"columns"}>
-                <div className={"column"}>
+                <div className={"column chat m-1"}>
                     <Chat connection={connection} msgs={msgs} story={story} updatedStory={updatedStory}/>
                 </div>
-                <div className={"column"}>
+                <div className={"column box m-1"}>
                     <div>
                         <h3 className={'title'}>Previous story</h3>
                         <MDXEditor ref={ref} markdown={previousStory}/>
                     </div>
                 </div>
-                <div className={"column"}>
+                <div className={"column box m-1"}>
                     <Story story={updatedStory} onStoryEdit={(updatedStory) => {
                         setUpdatedStory(updatedStory);
                         console.log('Story changed')
                     }}/>
                 </div>
-                <div className={"column"}>
-                    <AgentChitChat agentChitChat={agentChitChat}/>
-                </div>
             </div>
             <div>
-                <AgentCurrentPrompts agentPrompts={agentPrompts}/>
+                <AgentCurrentPrompts agentPrompts={agentPrompts} agentChitChat={agentChitChat} />
             </div>
         </div>
     );

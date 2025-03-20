@@ -1,16 +1,22 @@
 import {useState} from "react";
+import AgentChitChatView from "./AgentChitChat.tsx";
+import {AgentChitChat} from './App'
 
 export type AgentsCurrentPromptProps = {
     agentPrompts: Record<string, string[]>
+    agentChitChat: AgentChitChat[]
 }
-export default function ({agentPrompts}: AgentsCurrentPromptProps) {
+export default function ({agentPrompts, agentChitChat}: AgentsCurrentPromptProps) {
 
-    const [activeTab, setActiveTab] = useState<number>(0)
+    const [activeTab, setActiveTab] = useState<number>(999)
 
     return (
         <div>
             <div className={"tabs is-boxed"}>
                 <ul>
+                    <li className={activeTab == 999 ? 'is-active' : ''}>
+                        <a onClick={() => setActiveTab(999)}>Chit Chat</a>
+                    </li>
                     {
                         Object.keys(agentPrompts).map((agent, i) => (
                             <li className={i == activeTab ? 'is-active' : ''} key={i}>
@@ -21,6 +27,11 @@ export default function ({agentPrompts}: AgentsCurrentPromptProps) {
                 </ul>
             </div>
             <div className={"tab-content"}>
+                {activeTab === 999 &&
+                    <div id={`nav-999`} key={'999'}>
+                        <AgentChitChatView agentChitChat={agentChitChat}/>
+                    </div>
+                }
                 {
                     Object.keys(agentPrompts).map((agent, i) => (
                         i === activeTab &&

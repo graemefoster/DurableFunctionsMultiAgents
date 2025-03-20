@@ -1,1 +1,9 @@
 @import 'bulma/css/bulma.css';
+
+.chat {
+   background-color: rgba(231, 236, 243, 0.7)
+}
+
+.story {
+    background-color: rgba(231, 236, 243, 0.7)
+}
