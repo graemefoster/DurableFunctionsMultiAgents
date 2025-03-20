@@ -1,23 +1,33 @@
+import {useState} from "react";
+
 export type AgentsCurrentPromptProps = {
     agentPrompts: Record<string, string[]>
 }
 export default function ({agentPrompts}: AgentsCurrentPromptProps) {
 
+    const [activeTab, setActiveTab] = useState<number>(0)
+
     return (
         <div>
-            <div className={"nav nav-tabs"}>
-                {
-                    Object.keys(agentPrompts).map((agent, i) => (
-                        <button className={"nav-link"} id={`nav-${agent}-tab`} data-bs-toggle={"tab"} data-bs-target={`#nav-${agent}`} type={"button"} role={"tab"} aria-controls={`nav-${agent}`} aria-selected={"true"} key={i}>{agent}</button>
-                    ))
-                }
+            <div className={"tabs is-boxed"}>
+                <ul>
+                    {
+                        Object.keys(agentPrompts).map((agent, i) => (
+                            <li className={i == activeTab ? 'is-active' : ''} key={i}>
+                                <a onClick={() => setActiveTab(i)}>{agent}</a>
+                            </li>
+                        ))
+                    }
+                </ul>
             </div>
             <div className={"tab-content"}>
                 {
                     Object.keys(agentPrompts).map((agent, i) => (
-                        <div className={"tab-pane fade show"} id={`nav-${agent}`} role={"tabpanel"} aria-labelledby={`nav-${agent}-tab`} key={i}>
+                        i === activeTab &&
+                        <div id={`nav-${agent}`} key={i}>
                             <AgentCurrentPrompt agent={agent} prompt={agentPrompts[agent]}/>
                         </div>
+
                     ))
                 }
             </div>
@@ -33,11 +43,10 @@ type AgentCurrentPromptProps = {
 function AgentCurrentPrompt({agent, prompt}: AgentCurrentPromptProps) {
     return (
         <div>
-            <strong>{agent}:</strong>
             <ul className={"list-group"}>
                 {prompt.map((message, j) => (
-                    <li className={"list-group-item"} key={j}>
-                        <pre>{message.replace('\n', '<br/>')}</pre>
+                    <li className={"box"} key={j}>
+                        {message.replace('\n', '<br/>')}
                     </li>
                 ))}
             </ul>

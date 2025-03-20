@@ -16,7 +16,8 @@ public class WriterEntityAgent: LlmAgentEntity
             - Ask the RESEARCHER for more information if the HUMAN is referring to things that actually happened recently.
             - Broadcast a new story or an update to the current story using the provided information and feedback. 
         
-        You must broadcast all new stories and then send them to the IMPROVER.
+        You must broadcast all new stories. 
+        Then you can ask the IMPROVER to think about questions to make them better.
         
         If the HUMAN's comments suggest you should though, you can throw it away and start again.
         

@@ -56,20 +56,24 @@ export default function ({connection, msgs, story, updatedStory}: ChatProps) {
         return <div>Connecting...</div>
     }
 
-    const question = questionId !== null && <div>
-        <input type="text" onChange={e => setMsg(e.target.value)}/>
-        <button onClick={() => {
-            connection!.invoke('UserResponse', targetAgent, msg, questionId)
-                .then(() => console.log('message sent'))
-                .then(() => setQuestionId(null))
-                .then(() => setTargetAgent(null))
-                .catch(e => console.log(e))
-        }}>Reply
-        </button>
+    const question = questionId !== null && <div className={'field has-addons'}>
+        <div className="control">
+            <input type="text" className={'input'} onChange={e => setMsg(e.target.value)}/>
+        </div>
+        <div className="control">
+            <button type={'button'} className={'button is-info'} onClick={() => {
+                connection!.invoke('UserResponse', targetAgent, msg, questionId)
+                    .then(() => console.log('message sent'))
+                    .then(() => setQuestionId(null))
+                    .then(() => setTargetAgent(null))
+                    .catch(e => console.log(e))
+            }}>Reply
+            </button>
+        </div>
     </div>
 
     const updateButton = story === updatedStory ? <div/> : <div>
-        <button onClick={() => {
+        <button type={'button'} className={'button'} onClick={() => {
             const storyPatch = generateChangeMessages(story, updatedStory)
             console.log('Patch:: ', storyPatch)
             const storyPatchString = storyPatch.reduce((acc, curr) => acc + curr + '\n', '')
@@ -81,7 +85,7 @@ export default function ({connection, msgs, story, updatedStory}: ChatProps) {
         </button>
     </div>
 
-    const newChat = !isChatting && <button onClick={() => {
+    const newChat = !isChatting && <button type={"button"} className={'button'} onClick={() => {
         connection!.invoke('NewChat')
             .then(() => console.log('message sent'))
             .then(() => setIsChatting(true))
@@ -90,12 +94,12 @@ export default function ({connection, msgs, story, updatedStory}: ChatProps) {
     </button>
 
     const messageList = (<ul className={"list-group"}>
-        {msgs.map((m, i) => <li className={"list-group-item"} key={i}>{m}</li>)}
+        {msgs.map((m, i) => <li className={"my-3"} key={i}>{m}</li>)}
     </ul>)
 
     return <div>
+        <h3 className={'title'}>Story Chat</h3>
         {newChat}
-        <h3>Story Chat</h3>
         {messageList}
         {question}
         {updateButton}

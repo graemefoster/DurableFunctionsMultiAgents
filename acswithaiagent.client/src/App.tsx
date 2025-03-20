@@ -97,28 +97,28 @@ function App() {
     }, [])
 
     return (
-        <div className={""}>
-            <div className={"row"}>
-                <div className={"col"}>
+        <div className={'m-5'}>
+            <div className={"columns"}>
+                <div className={"column"}>
                     <Chat connection={connection} msgs={msgs} story={story} updatedStory={updatedStory}/>
                 </div>
-                <div className={"col"}>
+                <div className={"column"}>
                     <div>
-                        <h3>Previous story</h3>
+                        <h3 className={'title'}>Previous story</h3>
                         <MDXEditor ref={ref} markdown={previousStory}/>
                     </div>
                 </div>
-                <div className={"col"}>
+                <div className={"column"}>
                     <Story story={updatedStory} onStoryEdit={(updatedStory) => {
                         setUpdatedStory(updatedStory);
                         console.log('Story changed')
                     }}/>
                 </div>
-                <div className={"col"}>
+                <div className={"column"}>
                     <AgentChitChat agentChitChat={agentChitChat}/>
                 </div>
             </div>
-            <div className={"row"}>
+            <div>
                 <AgentCurrentPrompts agentPrompts={agentPrompts}/>
             </div>
         </div>

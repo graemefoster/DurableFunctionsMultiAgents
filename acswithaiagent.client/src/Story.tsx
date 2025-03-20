@@ -23,7 +23,7 @@ export default function ({ story, onStoryEdit}: StoryProps) {
 
     return (
         <div>
-            <h3>The story so far...</h3>
+            <h3 className={'title'}>The story so far...</h3>
             
             <MDXEditor markdown={story} 
                        onChange={md => onStoryEdit(md)}
