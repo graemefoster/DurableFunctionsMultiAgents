@@ -31,9 +31,9 @@ public static class Orchestration
                     "I will search the Internet to find relevant information to shape the story."),
                 // ["EDITOR"] = (nameof(EditorEntityAgent), ["IMPROVER"],
                 //     "I will check the grammar and punctuation of the writer's story for them."),
-                ["HUMAN"] = (nameof(UserAgentEntity), [], ""),
+                ["HUMAN"] = (nameof(UserAgentEntity), [], "I can provide answers, feedback, and respond to questions from the agents."),
                 ["IMPROVER"] = (nameof(ImproverAgentEntity), ["HUMAN", "WRITER"],
-                    "I can interact with a HUMAN to get more information to improve the story."),
+                    "I can look at a story, and ask thought provoking questions to the HUMAN to improve the story."),
                 ["DIFFER"] = (nameof(DifferEntityAgent), ["WRITER"],
                     "I can look at edits made to a story by the HUMAN, and tell the WRITER what needs to be changed."),
             };
@@ -57,6 +57,7 @@ public static class Orchestration
         var responses = new[]
         {
             new AgentConversationTypes.AgentResponse(
+                "MESSAGE",
                 "WRITER",
                 "HUMAN",
                 "Let's start with an idea for a story")
@@ -119,7 +120,7 @@ public static class Orchestration
             }
         }
 
-        return responses;
+        return responses.Where(x => x.Type == "MESSAGE").ToArray();
     }
 
 

@@ -6,7 +6,7 @@ namespace DurableAgentFunctions.ServerlessAgents.Agents;
 
 public class WriterEntityAgent: LlmAgentEntity
 {
-    public WriterEntityAgent(IChatClient chatClient, HubConnection hubConnection) : base(chatClient, hubConnection) { }
+    public WriterEntityAgent(IChatClient chatClient, HubConnection hubHubConnection) : base(chatClient, hubHubConnection) { }
 
     protected override string SystemPrompt =>
         """
@@ -14,11 +14,13 @@ public class WriterEntityAgent: LlmAgentEntity
 
         Each time it's your turn you must either:
             - Ask the RESEARCHER for more information if the HUMAN is referring to things that actually happened recently.
-            - Write a new story if there is no current one, or update the current story using the provided feedback.
+            - Broadcast a new story or an update to the current story using the provided information and feedback. 
+        
+        You must broadcast all new stories and then send them to the IMPROVER.
         
         If the HUMAN's comments suggest you should though, you can throw it away and start again.
         
-        Just output the story. The next agent will know what they need to do!
+        The story is finished when the HUMAN tells you explicitly they are happy with it. Until then, write new drafts of the story incorporating the feedback.
         """;
  
     [Function(nameof(WriterEntityAgent))]
@@ -27,9 +29,27 @@ public class WriterEntityAgent: LlmAgentEntity
         return dispatcher.DispatchAsync<WriterEntityAgent>();
     }
 
-    protected override bool ShouldRetainInHistory(AgentConversationTypes.AgentResponse agentRequest)
+    protected override IEnumerable<AITool> GetCustomTools(IList<AgentConversationTypes.AgentResponse> responses)
     {
-        //don't retain every story draft in history
-        return agentRequest.Next != "IMPROVER";
+        yield return AIFunctionFactory.Create(
+            (string story) => BroadcastStory(responses, story),
+            new AIFunctionFactoryCreateOptions()
+            {
+                Name = nameof(BroadcastStory),
+                Description = "Use this to broadcast a story when you've written or updated one"
+            });
+    }
+
+    private async ValueTask BroadcastStory(IList<AgentConversationTypes.AgentResponse> responses, string story)
+    {
+        responses.Add(new AgentConversationTypes.AgentResponse("STORY", "WRITER", "", story));
+        
+        //If the improver has spoken then broadcast the message.
+        await HubConnection.InvokeAsync(
+            "NotifyAgentStoryResponse",
+            State.SignalrChatIdentifier,
+            story);
+        
+
     }
 }

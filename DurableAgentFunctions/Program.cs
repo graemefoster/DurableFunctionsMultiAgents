@@ -31,7 +31,11 @@ builder.Services.AddSingleton(signalrHub);
 var chatClient = new Azure.AI.OpenAI.AzureOpenAIClient(
         new Uri(settings.AoaiUrl),
         new ApiKeyCredential(settings.AoaiKey))
-    .AsChatClient(settings.AoaiDeploymentName);
+    .AsChatClient(settings.AoaiDeploymentName)
+    .AsBuilder()
+    .UseFunctionInvocation()
+    .UseOpenTelemetry()
+    .Build();
 
 builder.Services.AddSingleton(chatClient);
 

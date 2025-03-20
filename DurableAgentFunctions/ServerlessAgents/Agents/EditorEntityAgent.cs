@@ -6,7 +6,7 @@ namespace DurableAgentFunctions.ServerlessAgents.Agents;
 
 public class EditorEntityAgent: LlmAgentEntity
 {
-    public EditorEntityAgent(IChatClient chatClient, HubConnection hubConnection) : base(chatClient, hubConnection)
+    public EditorEntityAgent(IChatClient chatClient, HubConnection hubHubConnection) : base(chatClient, hubHubConnection)
     {
     }
 

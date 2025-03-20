@@ -6,7 +6,7 @@ namespace DurableAgentFunctions.ServerlessAgents.Agents;
 
 public class DifferEntityAgent: LlmAgentEntity
 {
-    public DifferEntityAgent(IChatClient chatClient, HubConnection hubConnection) : base(chatClient, hubConnection)
+    public DifferEntityAgent(IChatClient chatClient, HubConnection hubHubConnection) : base(chatClient, hubHubConnection)
     {
     }
 
@@ -14,10 +14,6 @@ public class DifferEntityAgent: LlmAgentEntity
         """
         You are a great analyser of content and you have a remarkable ability to look at a git diff of text, and summarise 
         what the user was trying to change.
-        
-        If the user has really just replaced the original content then response with a message that says "NEW_CONTENT".
-        If the only changes are to whitespace, then respond with a message that says "NO_CHANGE".
-        Else respond with a message that captures the intent of the change.
         """;
 
     protected override IEnumerable<ChatMessage> BuildChatHistory(
@@ -30,19 +26,31 @@ public class DifferEntityAgent: LlmAgentEntity
         yield return new ChatMessage(ChatRole.User, history.Last(x => x.From == "HUMAN").Message);
     }
 
-    protected override Task<AgentConversationTypes.AgentResponse> ApplyAgentCustomLogic(AgentConversationTypes.AgentResponse agentResponse)
-    {
-        if (agentResponse.Message == "NO_CHANGE")
-        {
-            return Task.FromResult(
-                new AgentConversationTypes.AgentResponse("DIFFER", "HUMAN", "No significant changes were found"));
-        }
-        return base.ApplyAgentCustomLogic(agentResponse);
-    }
-
     [Function(nameof(DifferEntityAgent))]
     public static Task RunEntityAsync([EntityTrigger] TaskEntityDispatcher dispatcher)
     {
         return dispatcher.DispatchAsync<DifferEntityAgent>();
+    }
+
+    private void NoChange(IList<AgentConversationTypes.AgentResponse> responses)
+    {
+        responses.Add(new AgentConversationTypes.AgentResponse("MESSAGE", "DIFFER", "HUMAN", "No significant changes were found"));
+    }
+
+    private void Changes(IList<AgentConversationTypes.AgentResponse> responses, string summary)
+    {
+        responses.Add(new AgentConversationTypes.AgentResponse("MESSAGE", "DIFFER", "WRITER", summary));
+    }
+
+    protected override IEnumerable<AITool> GetCustomTools(IList<AgentConversationTypes.AgentResponse> responses)
+    {
+        yield return AIFunctionFactory.Create(() => NoChange(responses), new AIFunctionFactoryCreateOptions()
+        {
+            Description = "When no significant changes were found",
+        });
+        yield return AIFunctionFactory.Create((string changeSummary) => Changes(responses, changeSummary), new AIFunctionFactoryCreateOptions()
+        {
+            Description = "Summarise the intent of the changes made by the HUMAN"
+        });
     }
 }

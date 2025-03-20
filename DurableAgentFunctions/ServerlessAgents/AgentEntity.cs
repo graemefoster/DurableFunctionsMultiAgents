@@ -5,12 +5,11 @@ namespace DurableAgentFunctions.ServerlessAgents;
 
 public abstract class AgentEntity : TaskEntity<AgentState>
 {
-    private readonly HubConnection _hubConnection;
-    private static readonly string[] agentsThatReceiveNewStory = new [] {"IMPROVER", "END"};
+    private readonly HubConnection _hubHubConnection;
 
-    public AgentEntity(HubConnection hubConnection)
+    public AgentEntity(HubConnection hubHubConnection)
     {
-        _hubConnection = hubConnection;
+        _hubHubConnection = hubHubConnection;
     }
 
     public void Init(AgentState state)
@@ -20,10 +19,7 @@ public abstract class AgentEntity : TaskEntity<AgentState>
 
     public void AgentHasSpoken(AgentConversationTypes.AgentResponse response)
     {
-        var next = response.Next;
-        //check for a new draft of the story and let agents know.
-        if (response.From.Equals("WRITER", StringComparison.InvariantCultureIgnoreCase) 
-            && agentsThatReceiveNewStory.Contains(next))
+        if (response.Type == "STORY")
         {
             State.CurrentStory = response.Message;
         }
@@ -32,7 +28,7 @@ public abstract class AgentEntity : TaskEntity<AgentState>
     public async Task<AgentConversationTypes.AgentResponse[]> GetResponse(AgentConversationTypes.AgentResponse newMessageToAgent)
     {
         var responses = await GetResponseInternal(newMessageToAgent);
-        foreach(var response in responses) await BroadcastInternalChitChat(response);
+        foreach(var response in responses.Where(x => x.Type == "MESSAGE")) await BroadcastInternalChitChat(response);
         return responses;
     }
 
@@ -46,7 +42,7 @@ public abstract class AgentEntity : TaskEntity<AgentState>
     {
         if (response.Next != "HUMAN")
         {
-            await _hubConnection.InvokeAsync(
+            await _hubHubConnection.InvokeAsync(
                 "AgentChitChat",
                 State.SignalrChatIdentifier,
                 response.From,
