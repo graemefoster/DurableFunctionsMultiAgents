@@ -274,3 +274,5 @@ _Pvt_Extensions
 /appsettings.Development.json
 
 ./AzuriteConfig
+
+.DS_Store/
