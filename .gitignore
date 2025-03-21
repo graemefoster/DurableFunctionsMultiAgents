@@ -273,3 +273,4 @@ _Pvt_Extensions
 /reactapp/yarn-error.log*
 /appsettings.Development.json
 
+./AzuriteConfig
