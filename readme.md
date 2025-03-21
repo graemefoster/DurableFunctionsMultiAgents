@@ -33,4 +33,12 @@ We've built a handful of agents to demonstrate a particular style of conversatio
 
 Having a human in the loop gave us a requirement to hand-off a thread back to the human when required. To facilitate this we leverage a Durable Orchestrations ability to ```WaitForExternalEvent```. This lets us yield an orchestration, use SignalR to ask the user to respond, and then to pickup the orchestration when it's time.
 
+### Tools to augment conversations
 
+Taking control of the agents allowed us to experiment with bending the agents to do what we wanted... For example, in the context of writing a story we didn't want every old draft of the story to clutter the conversation history.
+
+Using tools allows us to ask a ```WRITER``` agent to do 2 things. 
+ 1. ```Publish``` a new story using a pre-defined tool
+ 2. ```SendMessage``` to the next agent (the ```IMPROVER```) to think of follow up questions for the ```HUMAN```.
+
+Having low level control over the agents and orchestrations make this kind of behaviour simple to model.
