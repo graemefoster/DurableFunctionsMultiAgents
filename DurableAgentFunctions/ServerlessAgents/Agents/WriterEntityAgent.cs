@@ -14,10 +14,9 @@ public class WriterEntityAgent: LlmAgentEntity
 
         Each time it's your turn you must either:
             - Ask the RESEARCHER for more information if the HUMAN is referring to things that actually happened recently.
-            - Broadcast a new story or an update to the current story using the provided information and feedback. 
+            - Broadcast a new version of the story. 
         
-        You must broadcast all new stories. 
-        Then you can ask the IMPROVER to think about questions to make them better.
+        If you write a story, you must broadcast it AND ask the IMPROVER to think about questions to make it better.
         
         If the HUMAN's comments suggest you should though, you can throw it away and start again.
         

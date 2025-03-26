@@ -24,7 +24,7 @@ public static class Orchestration
             new Dictionary<string, (string, string[], string)>()
             {
                 ["END"] = (nameof(EndAgentEntity), [],
-                    "I will stop the conversation if everyone is happy!"),
+                    "I will stop the conversation when the HUMAN is happy!"),
                 ["WRITER"] = (nameof(WriterEntityAgent), ["IMPROVER", "RESEARCHER", "END"],
                     "I can write stories based on the provided information."),
                 ["RESEARCHER"] = (nameof(ResearcherEntityAgent), [],

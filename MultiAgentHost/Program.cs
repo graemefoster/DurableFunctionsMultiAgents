@@ -8,6 +8,7 @@ var functions = builder.AddAzureFunctionsProject<DurableAgentFunctions>("Durable
     .WaitFor(signalR);
 
 var client = builder.AddNpmApp("DurableAgentClient", "../storyteller.client", "dev")
+    .WithHttpsEndpoint(targetPort:55321)
     .WaitFor(functions);
 
 builder.Build().Run();

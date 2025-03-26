@@ -51,7 +51,7 @@ type AgentCurrentPromptProps = {
     prompt: string[]
 }
 
-function AgentCurrentPrompt({agent, prompt}: AgentCurrentPromptProps) {
+function AgentCurrentPrompt({prompt}: AgentCurrentPromptProps) {
     return (
         <div>
             <ul className={"list-group"}>

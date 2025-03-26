@@ -80,16 +80,13 @@ Remember you cannot talk DIRECTLY to any other agent than the listed ones.
 
     private async Task BroadcastPrompt(ChatMessage[] messages, IEnumerable<AgentConversationTypes.AgentResponse> responses)
     {
-        foreach (var response in responses)
-        {
-            await _hubHubConnection.InvokeAsync("BroadcastPrompt",
-                State.SignalrChatIdentifier,
-                State.AgentName,
-                messages
-                    .Select(x => $"{x.Role.Value}: {x.Text}")
-                    .Union([$"LLM RESPONSE -> {response.Next}: {response.Message}"])
-                    .ToArray());
-        }
+        await _hubHubConnection.InvokeAsync("BroadcastPrompt",
+            State.SignalrChatIdentifier,
+            State.AgentName,
+            messages
+                .Select(x => $"{x.Role.Value}: {x.Text}")
+                .Union(responses.Select(response=> $"LLM RESPONSE -> {response.Type} - {response.Next}: {response.Message}"))
+                .ToArray());
     }
 
     // protected virtual Task<AgentConversationTypes.AgentResponse> ApplyAgentCustomLogic(
@@ -98,6 +95,17 @@ Remember you cannot talk DIRECTLY to any other agent than the listed ones.
     protected virtual IEnumerable<ChatMessage> BuildChatHistory(
         IEnumerable<AgentConversationTypes.AgentResponse> history)
     {
+        //Only improve on the current story. Don't bother with anything else
+        if (State.CurrentStory != null)
+        {
+            yield return  new ChatMessage(ChatRole.Assistant, "Here is the OLD story:");
+            yield return new ChatMessage(ChatRole.Assistant, base.State.CurrentStory);
+        }
+        else
+        {
+            yield return new ChatMessage(ChatRole.Assistant, "There is NO current story");
+        }
+
         foreach (var message in history)
         {
             yield return new ChatMessage(
@@ -107,16 +115,6 @@ Remember you cannot talk DIRECTLY to any other agent than the listed ones.
                 $"From:{message.From} to {message.Next} - {message.Message}");
         }
         
-        //Only improve on the current story. Don't bother with anything else
-        if (State.CurrentStory != null)
-        {
-            yield return  new ChatMessage(ChatRole.Assistant, "Latest Story Follows:");
-            yield return new ChatMessage(ChatRole.Assistant, base.State.CurrentStory);
-        }
-        else
-        {
-            yield return new ChatMessage(ChatRole.Assistant, "There is NO current story");
-        }
     }
 
     private void SendMessageToAgent(IList<AgentConversationTypes.AgentResponse> responses, string nextAgent, string message)

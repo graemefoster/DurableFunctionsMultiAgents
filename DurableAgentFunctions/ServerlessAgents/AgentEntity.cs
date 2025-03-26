@@ -28,7 +28,7 @@ public abstract class AgentEntity : TaskEntity<AgentState>
     public async Task<AgentConversationTypes.AgentResponse[]> GetResponse(AgentConversationTypes.AgentResponse newMessageToAgent)
     {
         var responses = await GetResponseInternal(newMessageToAgent);
-        foreach(var response in responses.Where(x => x.Type == "MESSAGE")) await BroadcastInternalChitChat(response);
+        foreach(var response in responses) await BroadcastInternalChitChat(response);
         return responses;
     }
 
