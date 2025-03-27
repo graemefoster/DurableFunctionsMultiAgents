@@ -14,17 +14,20 @@ public class NetworkPlanner: IPlanner
     public string GenerateRules(string agentName)
     {
         return $"""
-                **RULES**
-                ---------
-                You can only send a message to ONE agent and they MUST be listed below. IF YOU TRY TO TALK TO MORE, WE WILL ONLY USE THE FIRST ONE.
-
+                You must choose ONE agent that is listed below, and send ONE message to it.
+                
                 Here are your fellow agents:
                 
                 {string.Join("\n\n", _stateAgentsICanTalkTo.Select(x => $"{x.Name} - {x.Capability}"))}.
 
-                Remember you cannot talk DIRECTLY to any other agent than the listed ones.
-
+                Remember: only send a single message to ONE agent.
+                
                 """;
+    }
+
+    protected virtual string SpecialRules()
+    {
+        return "";
     }
 
     public IEnumerable<AITool> GetCustomTools(AgentState agentState, List<AgentConversationTypes.AgentResponse> responseCollector)

@@ -11,10 +11,13 @@ public class WriterEntityAgent: LlmAgentEntity
     protected override string SystemPrompt =>
         """
         You are a fabulous writer. You will work with a team to write a story.
-
-        Whenever you write a new version of the story you must BROADCAST it, then send messages to others.
         """;
- 
+
+    protected override string SpecialRules()
+    {
+        return "You must BROADCAST the story whenever you write a new version of it.";
+    }
+
     [Function(nameof(WriterEntityAgent))]
     public static Task RunEntityAsync([EntityTrigger] TaskEntityDispatcher dispatcher)
     {

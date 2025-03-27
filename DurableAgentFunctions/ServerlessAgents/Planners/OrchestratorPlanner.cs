@@ -16,15 +16,11 @@ public class OrchestratorPlanner: IPlanner
         if (agentName != "ORCHESTRATOR")
         {
             return """
-                    **RULES**
-                    ---------
                     You MUST send a message TO the ORCHESTRATOR agent with your response. The ORCHESTRATOR will decide what to do next.
                     """;
         }
         
         return $"""
-                **RULES**
-                ---------
                 You must choose ONE agent that is listed below, and send ONE message to it.
 
                 CHOOSE from ONE of these agents:

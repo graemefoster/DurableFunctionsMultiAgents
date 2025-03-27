@@ -39,6 +39,10 @@ $"""
                     
         {SystemPrompt}
 
+        **RULES**
+        ---------
+        {SpecialRules()}
+        
         {planner.GenerateRules(State.AgentName)}
         """)
             }
@@ -66,6 +70,11 @@ $"""
         }
 
         return allResponses.ToArray();
+    }
+
+    protected virtual string SpecialRules()
+    {
+        return "";
     }
 
     protected virtual IEnumerable<AITool> GetCustomTools(IList<AgentConversationTypes.AgentResponse> responses)
