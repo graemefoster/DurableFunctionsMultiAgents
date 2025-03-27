@@ -34,9 +34,13 @@ public abstract class LlmAgentEntity : AgentEntity
             {
                 new ChatMessage(
                     ChatRole.System,
-                    SystemPrompt +
-                    Environment.NewLine + Environment.NewLine +
-                    planner.GenerateRules(State.AgentName))
+$"""
+        You are the {State.AgentName} Agent.
+                    
+        {SystemPrompt}
+
+        {planner.GenerateRules(State.AgentName)}
+        """)
             }
             .Concat(agentChatHistory)
             .ToArray();

@@ -18,7 +18,8 @@ public class NetworkPlanner: IPlanner
                 ---------
                 You can only send a message to ONE agent and they MUST be listed below. IF YOU TRY TO TALK TO MORE, WE WILL ONLY USE THE FIRST ONE.
 
-                The available agents are:
+                Here are your fellow agents:
+                
                 {string.Join("\n\n", _stateAgentsICanTalkTo.Select(x => $"{x.Name} - {x.Capability}"))}.
 
                 Remember you cannot talk DIRECTLY to any other agent than the listed ones.
