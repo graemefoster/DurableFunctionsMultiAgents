@@ -11,17 +11,17 @@ public class AgentHub : Hub
         _logger = logger;
     }
 
-    public async Task SendMessage(string user, string message)
+    public async Task SendMessage(string from, string to, string message, DateTime time)
     {
-        _logger.LogInformation("Received Message: {user} - {message}", user, message);
-        await Clients.All.SendAsync("ReceiveMessage", user, message);
+        _logger.LogInformation("Received Message: {user} - {message}", from, message);
+        await Clients.All.SendAsync("ReceiveMessage", from, to, message, time);
     }
 
     //Should be authorised.
     // ReSharper disable once UnusedMember.Global
-    public async Task AgentChitChat(string chatIdentifier, string from, string to, string message)
+    public async Task AgentChitChat(string chatIdentifier, string from, string to, string message, DateTime time)
     {
-        await Clients.Client(chatIdentifier).SendAsync("InternalAgentChitChat", from, to, message);
+        await Clients.Client(chatIdentifier).SendAsync("InternalAgentChitChat", from, to, message, time);
     }
 
     //Should be authorised.
@@ -47,10 +47,10 @@ public class AgentHub : Hub
 
     //Should be authorised.
     // ReSharper disable once UnusedMember.Global
-    public async Task AskForUserInput(string chatIdentifier, string from, string question, string eventName)
+    public async Task AskForUserInput(string chatIdentifier, DateTimeOffset date, string from, string question, string eventName)
     {
         _logger.LogInformation("Prompting user for information: {eventName}", eventName);
-        await Clients.Client(chatIdentifier).SendAsync("AskQuestion", from, question, eventName);
+        await Clients.Client(chatIdentifier).SendAsync("AskQuestion", date, from, question, eventName);
     }
 
     // ReSharper disable once UnusedMember.Global
@@ -61,8 +61,9 @@ public class AgentHub : Hub
         var instanceId = Context.Items["InstanceId"];
         
         _logger.LogInformation("Event name: {eventName}, InstanceId: {instanceId}", eventName, instanceId);
-        
-        await Clients.Caller.SendAsync("ReceiveMessage", "User", response);
+
+        var timestamp = DateTimeOffset.Now;
+        await Clients.Caller.SendAsync("ReceiveMessage", timestamp, "User", response);
         
         var res = await client.PostAsJsonAsync("http://localhost:7115/api/ResponseToQuestion",
             new

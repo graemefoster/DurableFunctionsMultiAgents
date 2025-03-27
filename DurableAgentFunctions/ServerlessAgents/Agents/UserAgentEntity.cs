@@ -27,6 +27,7 @@ public class UserAgentEntity : TaskEntity<AgentState>
         await _hubConnection.InvokeAsync(
             "AskForUserInput",
             State.SignalrChatIdentifier,
+            newMessagesToAgent.Question.TimeStamp,
             newMessagesToAgent.Question.From,
             newMessagesToAgent.Question.Message,
             newMessagesToAgent.EventName);
@@ -34,7 +35,7 @@ public class UserAgentEntity : TaskEntity<AgentState>
     
     public AgentConversationTypes.AgentResponse RecordResponse(FunctionPayloads.HumanResponseToAgentQuestion response)
     {
-        var agentResponse = new AgentConversationTypes.AgentResponse("MESSAGE", "HUMAN", response.NextAgent, response.Response);
+        var agentResponse = new AgentConversationTypes.AgentResponse("MESSAGE", DateTimeOffset.Now, "HUMAN", response.NextAgent, response.Response);
         State.ChatHistory = State.ChatHistory.Concat([agentResponse]).ToArray();
         return agentResponse;
     }

@@ -13,11 +13,6 @@ public class ImproverAgentEntity : LlmAgentEntity
     protected override string SystemPrompt =>
         """
         You are amazing at analyzing a document and coming up with follow up questions.
-
-        Each time it's your turn:
-        - Try to think of follow up questions to ask the HUMAN to make the story better. Just ask questions. No need to tell them the story as they already have a copy.
-        - Or relay the HUMAN's feedback to the WRITER so the WRITER can improve the story.
-        
         """;
 
     [Function(nameof(ImproverAgentEntity))]

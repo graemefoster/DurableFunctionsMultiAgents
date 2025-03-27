@@ -3,9 +3,16 @@ import {HubConnection} from "@microsoft/signalr";
 import {useEffect, useState} from "react";
 import {diffWords} from "diff"
 
+export type Message = {
+    date: Date,
+    from: string,
+    message: string
+}
+
+
 export type ChatProps = {
     connection: HubConnection | null
-    msgs: string[]
+    msgs: Message[]
     story: string
     updatedStory: string
 }
@@ -44,7 +51,7 @@ export default function ({connection, msgs, story, updatedStory}: ChatProps) {
     useEffect(() => {
 
             if (connection !== null) {
-                connection.on('AskQuestion', (fromAgent: string, _: string, eventName: string) => {
+                connection.on('AskQuestion', (_date: string, fromAgent: string, _message: string, eventName: string) => {
                     setQuestionId(eventName)
                     setTargetAgent(fromAgent)
                 })
@@ -94,7 +101,7 @@ export default function ({connection, msgs, story, updatedStory}: ChatProps) {
     </button>
 
     const messageList = (<ul className={"list-group"}>
-        {msgs.map((m, i) => <li className={"my-3"} key={i}>{m}</li>)}
+        {msgs.map((m, i) => <li className={"my-3"} key={i}><b>{m.from}</b>:{m.date.toLocaleTimeString()}<br/> {m.message.split('\n').map((line: string, idx: number) => <p key={idx.toString()}>{line}<br/></p>)}</li>)}
     </ul>)
 
     return <div>

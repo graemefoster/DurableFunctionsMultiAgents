@@ -12,15 +12,7 @@ public class WriterEntityAgent: LlmAgentEntity
         """
         You are a fabulous writer. You will work with a team to write a story.
 
-        Each time it's your turn you must either:
-            - Ask the RESEARCHER for more information if the HUMAN is referring to things that actually happened recently.
-            - Broadcast a new version of the story. 
-        
-        If you write a story, you must broadcast it AND ask the IMPROVER to think about questions to make it better.
-        
-        If the HUMAN's comments suggest you should though, you can throw it away and start again.
-        
-        The story is finished when the HUMAN tells you explicitly they are happy with it. Until then, write new drafts of the story incorporating the feedback.
+        Whenever you write a new version of the story you must BROADCAST it, then send messages to others.
         """;
  
     [Function(nameof(WriterEntityAgent))]
@@ -42,7 +34,7 @@ public class WriterEntityAgent: LlmAgentEntity
 
     private async ValueTask BroadcastStory(IList<AgentConversationTypes.AgentResponse> responses, string story)
     {
-        responses.Add(new AgentConversationTypes.AgentResponse("STORY", "WRITER", "", story));
+        responses.Add(new AgentConversationTypes.AgentResponse("STORY", DateTimeOffset.Now, "WRITER", "", story));
         
         //If the improver has spoken then broadcast the message.
         await HubConnection.InvokeAsync(

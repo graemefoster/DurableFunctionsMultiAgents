@@ -2,15 +2,15 @@ import {useEffect, useRef, useState} from "react";
 import * as signalr from "@microsoft/signalr";
 import {HubConnection} from "@microsoft/signalr";
 import Story from './Story.tsx'
-import Chat from "./Chat.tsx";
-import AgentChitChat from "./AgentChitChat.tsx";
+import Chat, {Message} from "./Chat.tsx";
 import AgentCurrentPrompts from "./AgentCurrentPrompts.tsx";
 import {MDXEditor, MDXEditorMethods} from "@mdxeditor/editor";
 
-export type AgentChitChat = {
+export type AgentMessage = {
     from: string,
     to: string,
-    message: string
+    message: string,
+    date: Date
 }
 
 function App() {
@@ -20,17 +20,17 @@ function App() {
     const [previousStory, setPreviousStory] = useState('')
     const [story, setStory] = useState('Story will appear here')
     const [updatedStory, setUpdatedStory] = useState('Story will appear here')
-    const [msgs, setMsgs] = useState<string[]>([])
-    const [agentChitChat, setAgentChitChat] = useState<AgentChitChat[]>([])
+    const [msgs, setMsgs] = useState<Message[]>([])
+    const [agentChitChat, setAgentChitChat] = useState<AgentMessage[]>([])
     const [agentPrompts, setAgentPrompts] = useState<Record<string, string[]>>({})
 
     const storyState = useRef<string>()
     storyState.current = story
 
-    const msgsState = useRef<string[]>()
+    const msgsState = useRef<Message[]>()
     msgsState.current = msgs
 
-    const agentChitChatState = useRef<AgentChitChat[]>()
+    const agentChitChatState = useRef<AgentMessage[]>()
     agentChitChatState.current = agentChitChat
 
     const agentPromptsState = useRef<Record<string, string[]>>()
@@ -55,12 +55,12 @@ function App() {
             try {
                 await newConnection.start()
                 setConnection(newConnection)
-                newConnection.on('ReceiveMessage', (user: string, message: string) => {
-                    const newState = msgsState.current!.concat([`${user}: ${message}`])
+                newConnection.on('ReceiveMessage', (date: string, user: string, message: string) => {
+                    const newState = msgsState.current!.concat([{date: new Date(date), from: user, message}])
                     setMsgs(newState)
                 })
-                newConnection.on('AskQuestion', (from: string, question: string, _: string) => {
-                    const newState = msgsState.current!.concat([`${from}: ${question}`])
+                newConnection.on('AskQuestion', (date: string, from: string, question: string, _: string) => {
+                    const newState = msgsState.current!.concat([{date: new Date(date), from, message: question}])
                     setMsgs(newState)
                 })
                 newConnection.on('ReceiveStoryMessage', (newStory: string) => {
@@ -69,8 +69,8 @@ function App() {
                     setUpdatedStory(newStory)
                     console.log('Story received', newStory)
                 })
-                newConnection.on('InternalAgentChitChat', (from: string, to: string, message: string) => {
-                    const newState = agentChitChatState.current!.concat([{from, to, message}])
+                newConnection.on('InternalAgentChitChat', (from: string, to: string, message: string, date: string) => {
+                    const newState = agentChitChatState.current!.concat([{from, to, message, date: new Date(date)}])
                     setAgentChitChat(newState)
                 })
                 newConnection.on('InternalAgentPrompt', (agent: string, prompt: string[]) => {

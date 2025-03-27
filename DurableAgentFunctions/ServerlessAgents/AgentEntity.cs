@@ -40,14 +40,12 @@ public abstract class AgentEntity : TaskEntity<AgentState>
     private async Task BroadcastInternalChitChat(
         AgentConversationTypes.AgentResponse response)
     {
-        if (response.Next != "HUMAN")
-        {
-            await _hubHubConnection.InvokeAsync(
-                "AgentChitChat",
-                State.SignalrChatIdentifier,
-                response.From,
-                response.Next,
-                response.Message);
-        }
+        await _hubHubConnection.InvokeAsync(
+            "AgentChitChat",
+            State.SignalrChatIdentifier,
+            response.From,
+            response.Next,
+            response.Message,
+            response.TimeStamp);
     }
 }

@@ -1,10 +1,10 @@
 import {useState} from "react";
 import AgentChitChatView from "./AgentChitChat.tsx";
-import {AgentChitChat} from './App'
+import {AgentMessage} from './App'
 
 export type AgentsCurrentPromptProps = {
     agentPrompts: Record<string, string[]>
-    agentChitChat: AgentChitChat[]
+    agentChitChat: AgentMessage[]
 }
 export default function ({agentPrompts, agentChitChat}: AgentsCurrentPromptProps) {
 
@@ -57,7 +57,7 @@ function AgentCurrentPrompt({prompt}: AgentCurrentPromptProps) {
             <ul className={"list-group"}>
                 {prompt.map((message, j) => (
                     <li className={"box"} key={j}>
-                        {message.replace('\n', '<br/>')}
+                        {message.split('\n').map((line: string, idx: number) => (<p key={idx}>{line}<br/></p>))}
                     </li>
                 ))}
             </ul>

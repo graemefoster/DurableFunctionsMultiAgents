@@ -14,8 +14,6 @@ public class DifferEntityAgent: LlmAgentEntity
         """
         You are a great analyser of content and you have a remarkable ability to look at a git diff of text, and summarise 
         what the user was trying to change.
-        
-        Tell the WRITER what changed and get them to integraete the changes into the story.
         """;
 
     protected override IEnumerable<ChatMessage> BuildChatHistory(
@@ -36,12 +34,12 @@ public class DifferEntityAgent: LlmAgentEntity
 
     private void NoChange(IList<AgentConversationTypes.AgentResponse> responses)
     {
-        responses.Add(new AgentConversationTypes.AgentResponse("MESSAGE", "DIFFER", "HUMAN", "No significant changes were found"));
+        responses.Add(new AgentConversationTypes.AgentResponse("MESSAGE", DateTimeOffset.Now, "DIFFER", "HUMAN", "No significant changes were found"));
     }
 
     private void Changes(IList<AgentConversationTypes.AgentResponse> responses, string summary)
     {
-        responses.Add(new AgentConversationTypes.AgentResponse("MESSAGE", "DIFFER", "WRITER", summary));
+        responses.Add(new AgentConversationTypes.AgentResponse("MESSAGE", DateTimeOffset.Now, "DIFFER", "WRITER", summary));
     }
 
     protected override IEnumerable<AITool> GetCustomTools(IList<AgentConversationTypes.AgentResponse> responses)

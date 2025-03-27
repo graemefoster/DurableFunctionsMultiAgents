@@ -10,6 +10,8 @@ public class AgentState
     public required FriendAgent[] AgentsICanTalkTo { get; set; }
 
     public required string AgentSummary { get; set; }
+    
+    public required string PlannerType { get; set; }
 }
 
 public class FriendAgent

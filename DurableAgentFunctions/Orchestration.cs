@@ -24,19 +24,21 @@ public static class Orchestration
             new Dictionary<string, (string, string[], string)>()
             {
                 ["END"] = (nameof(EndAgentEntity), [],
-                    "I will stop the conversation when the HUMAN is happy!"),
+                    "I will end the project. Only call me when the HUMAN has indicated that NO MORE changes are needed to the story"),
                 ["WRITER"] = (nameof(WriterEntityAgent), ["IMPROVER", "RESEARCHER", "END"],
                     "I can write stories based on the provided information."),
                 ["RESEARCHER"] = (nameof(ResearcherEntityAgent), [],
-                    "I will search the Internet to find relevant information to shape the story."),
-                // ["EDITOR"] = (nameof(EditorEntityAgent), ["IMPROVER"],
-                //     "I will check the grammar and punctuation of the writer's story for them."),
+                    "I will search the Internet to find relevant information to support the story."),
                 ["HUMAN"] = (nameof(UserAgentEntity), [], "I can provide answers, feedback, and respond to questions from the agents."),
                 ["IMPROVER"] = (nameof(ImproverAgentEntity), ["HUMAN", "WRITER"],
-                    "I can look at a story, and ask thought provoking questions to the HUMAN to improve the story."),
+                    "I look at stories published by the WRITER, and ask thought provoking questions to the HUMAN to improve the story."),
                 ["DIFFER"] = (nameof(DifferEntityAgent), ["WRITER"],
-                    "I can look at edits made to a story by the HUMAN, and tell the WRITER what needs to be changed."),
+                    "I can analyse text-diffs that are edits made to a story by the HUMAN, and will tell the WRITER what needs to be changed."),
+                ["ORCHESTRATOR"] = (nameof(OrchestratorEntityAgent), ["IMPROVER", "WRITER", "RESEARCHER", "END", "HUMAN"],
+                    "I orchestrate the conversation and decide who gets involved next."),
             };
+
+        var useOrchestrator = Environment.GetEnvironmentVariable("PLANNER_TYPE") == "ORCHESTRATOR";
 
         var agentMap = agents.ToDictionary(
             x => x.Key,
@@ -46,7 +48,8 @@ public static class Orchestration
                     AgentName = x.Key,
                     AgentsICanTalkTo = x.Value.Item2.Select(x => new FriendAgent() { Name = x, Capability = agents[x].Item3 }).ToArray(),
                     AgentSummary = x.Value.Item3,
-                    SignalrChatIdentifier = signalrChatIdentifier
+                    SignalrChatIdentifier = signalrChatIdentifier,
+                    PlannerType = useOrchestrator ? "ORCHESTRATOR" : "NETWORK"
                 }, 
                 new EntityInstanceId(x.Value.Item1, signalrChatIdentifier)));
 
@@ -58,7 +61,8 @@ public static class Orchestration
         {
             new AgentConversationTypes.AgentResponse(
                 "MESSAGE",
-                "WRITER",
+                DateTimeOffset.Now, 
+                useOrchestrator ? "ORCHESTRATOR": "WRITER",
                 "HUMAN",
                 "Let's start with an idea for a story")
         };

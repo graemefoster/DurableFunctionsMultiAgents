@@ -13,10 +13,6 @@ public class EditorEntityAgent: LlmAgentEntity
     protected override string SystemPrompt =>
         """
         You are an EDITOR who specialises in grammar and punctuation. 
-        
-        Each time it's your turn:
-            - Fix the punctuation and grammar if necessary, and output the new story.
-        
         """;
 
     protected override IEnumerable<ChatMessage> BuildChatHistory(IEnumerable<AgentConversationTypes.AgentResponse> history)
