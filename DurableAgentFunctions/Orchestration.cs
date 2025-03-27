@@ -25,7 +25,7 @@ public static class Orchestration
             {
                 ["END"] = (nameof(EndAgentEntity), [],
                     "I will end the project. Only call me when the HUMAN has indicated that NO MORE changes are needed to the story"),
-                ["WRITER"] = (nameof(WriterEntityAgent), ["IMPROVER", "RESEARCHER", "END"],
+                ["WRITER"] = (nameof(WriterEntityAgent), ["IMPROVER", "RESEARCHER", "HUMAN", "END"],
                     "I can write stories based on the provided information."),
                 ["RESEARCHER"] = (nameof(ResearcherEntityAgent), [],
                     "I will search the Internet to find relevant information to help write the story - if it refers to recent real events."),

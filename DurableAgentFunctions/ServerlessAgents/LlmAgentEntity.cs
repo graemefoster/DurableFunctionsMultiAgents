@@ -30,6 +30,15 @@ public abstract class LlmAgentEntity : AgentEntity
 
         var agentChatHistory = BuildChatHistory(State.ChatHistory).ToArray();
         
+        var specialRules = SpecialRules();
+        specialRules = string.IsNullOrWhiteSpace(specialRules)
+            ? ""
+            : $"""
+               ** YOUR SPECIAL RULES **
+               {specialRules}
+                
+               """;
+        
         var messages = new[]
             {
                 new ChatMessage(
@@ -38,11 +47,10 @@ $"""
         You are the {State.AgentName} Agent.
                     
         {SystemPrompt}
-
-        **RULES**
-        ---------
-        {SpecialRules()}
         
+        {specialRules}
+
+         **STANDARD RULES**
         {planner.GenerateRules(State.AgentName)}
         """)
             }
@@ -56,8 +64,14 @@ $"""
             {
                 Tools = GetCustomTools(allResponses)
                     .Concat(planner.GetCustomTools(State, allResponses)).ToArray(),
-                ToolMode = ChatToolMode.RequireAny
+                ToolMode = ChatToolMode.Auto
             });
+
+        if (!allResponses.Any(x => x.Type == "MESSAGE"))
+        {
+            //agent didn't provide a next... Let's get the planner to decide what to do next
+            allResponses.Add(planner.GetNextGuessAgent(State.AgentName, response.Message.Text));
+        }
 
         await BroadcastPrompt(messages, allResponses);
 

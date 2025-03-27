@@ -58,7 +58,12 @@ public class OrchestratorPlanner: IPlanner
         }
 
     }
-    
+
+    public AgentConversationTypes.AgentResponse GetNextGuessAgent(string agent, string message)
+    {
+        return new AgentConversationTypes.AgentResponse("MESSAGE", DateTimeOffset.Now, agent, "ORCHESTRATOR", message);
+    }
+
     private void SendMessageToAgent(IList<AgentConversationTypes.AgentResponse> responses, string agentName, string nextAgent, string message)
     {
         responses.Add(

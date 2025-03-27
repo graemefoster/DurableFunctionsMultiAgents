@@ -20,14 +20,9 @@ public class NetworkPlanner: IPlanner
                 
                 {string.Join("\n\n", _stateAgentsICanTalkTo.Select(x => $"{x.Name} - {x.Capability}"))}.
 
-                Remember: only send a single message to ONE agent.
+                Remember: you MUST send a single message to ONE agent.
                 
                 """;
-    }
-
-    protected virtual string SpecialRules()
-    {
-        return "";
     }
 
     public IEnumerable<AITool> GetCustomTools(AgentState agentState, List<AgentConversationTypes.AgentResponse> responseCollector)
@@ -40,7 +35,17 @@ public class NetworkPlanner: IPlanner
                 Description = "Send a message to another agent"
             });
     }
-    
+
+    /// <summary>
+    /// Found it very difficult to get an agent to reliably make multiple tool calls!
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public AgentConversationTypes.AgentResponse GetNextGuessAgent(string agent, string message)
+    {
+        return new AgentConversationTypes.AgentResponse("MESSAGE", DateTimeOffset.Now, agent, "HUMAN", message);
+    }
+
     private void SendMessageToAgent(IList<AgentConversationTypes.AgentResponse> responses, string agentName, string nextAgent, string message)
     {
         responses.Add(
