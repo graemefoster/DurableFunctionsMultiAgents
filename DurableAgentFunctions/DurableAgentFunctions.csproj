@@ -13,12 +13,12 @@
         <FrameworkReference Include="Microsoft.AspNetCore.App"/>
         <PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
         <PackageReference Include="Contrib.Grpc.Core.M1" Version="2.46.7" />
-        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.1" />
+        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.3" />
         <!-- Application Insights isn't enabled by default. See https://aka.ms/AAt8mw4. -->
         <!-- <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="2.22.0" /> -->
         <!-- <PackageReference Include="Microsoft.Azure.Functions.Worker.ApplicationInsights" Version="2.0.0" /> -->
         <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.0.0"/>
-        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.DurableTask" Version="1.2.2" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.DurableTask" Version="1.2.3" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.0.0"/>
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.0"/>
 
