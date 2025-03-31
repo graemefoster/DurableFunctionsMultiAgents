@@ -20,6 +20,7 @@
     <ItemGroup>
       <ProjectReference Include="..\DurableAgentFunctions\DurableAgentFunctions.csproj" />
       <ProjectReference Include="..\DurableAgentSignalR\DurableAgentSignalR.csproj" />
+      <ProjectReference Include="..\SemanticKernelWriterMultiAgent\SemanticKernelWriterMultiAgent.csproj" />
       <ProjectReference Include="..\storyteller.client\acswithaiagent.client.esproj" />
     </ItemGroup>
 

@@ -11,6 +11,8 @@ Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "acswithaiagent.client", "st
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiAgentHost", "MultiAgentHost\MultiAgentHost.csproj", "{036E2819-39A2-4388-8CF7-83484D9CCA07}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticKernelWriterMultiAgent", "SemanticKernelWriterMultiAgent\SemanticKernelWriterMultiAgent.csproj", "{F2F21CED-0F28-4714-A3DF-38A7F4B3D764}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{036E2819-39A2-4388-8CF7-83484D9CCA07}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{036E2819-39A2-4388-8CF7-83484D9CCA07}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{036E2819-39A2-4388-8CF7-83484D9CCA07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2F21CED-0F28-4714-A3DF-38A7F4B3D764}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2F21CED-0F28-4714-A3DF-38A7F4B3D764}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2F21CED-0F28-4714-A3DF-38A7F4B3D764}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2F21CED-0F28-4714-A3DF-38A7F4B3D764}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

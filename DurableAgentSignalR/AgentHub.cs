@@ -1,3 +1,5 @@
+using System.Runtime.Serialization;
+using System.Text.Json;
 using Microsoft.AspNetCore.SignalR;
 
 namespace DurableAgentSignalR;
@@ -117,4 +119,90 @@ public class AgentHub : Hub
         _logger.LogInformation("New chat started. InstanceId: {instanceId}. ConnectionId: {connectionId}", instanceId, Context.ConnectionId);
         await Clients.Caller.SendAsync("Agent", "New chat started! Let's go!");
     }
+    
+    
+    public async Task NewChatSemanticKernel()
+    {
+        //start a durable function orchestration over in function land
+        var client = new HttpClient();
+        var response = await client.PostAsJsonAsync("http://localhost:7206/api/StartNewChat",
+            new
+            {
+                SignalrChatIdentifier = Context.ConnectionId
+            });
+
+        var prototype = new
+        {
+            sessionId = "10",
+            responses = new [] { new {type = "a", timeStamp = DateTime.Now, from = "a", next = "b", message = ""} }
+        };
+
+        var agentResponse = await GetResponseAs(response, prototype);
+        Context.Items["InstanceId"] = agentResponse.sessionId;
+
+        //first response will be a question to the user. Subsequent ones are the agent chit-chat.
+        //so let's run in reverse order, and broadcast them out
+        var question = agentResponse.responses.First();
+        foreach (var responseMessage in agentResponse.responses.Reverse())
+        {
+            await AgentChitChat(Context.ConnectionId, responseMessage.from, responseMessage.next,
+                responseMessage.message, responseMessage.timeStamp);
+            
+        }
+        await AskForUserInput(Context.ConnectionId, question.timeStamp, question.from, question.message, Guid.NewGuid().ToString());
+        
+        _logger.LogInformation("New chat started. InstanceId: {instanceId}. ConnectionId: {connectionId}", Context.ConnectionId, Context.ConnectionId);
+    }
+    
+    // ReSharper disable once UnusedMember.Global
+    public async Task UserResponseSemanticKernel(string targetAgent, string response, string eventName)
+    {
+        var instanceId = Context.Items["InstanceId"];
+        
+        _logger.LogInformation("Event name: {eventName}, InstanceId: {instanceId}", eventName, instanceId);
+
+        var timestamp = DateTimeOffset.Now;
+        await Clients.Caller.SendAsync("ReceiveMessage", timestamp, "User", response);
+
+        //start a durable function orchestration over in function land
+        var client = new HttpClient();
+        var apiResponse = await client.PostAsJsonAsync("http://localhost:7206/api/ResponseToQuestion",
+            new
+            {
+                InstanceId = instanceId,
+                EventName = eventName,
+                Response = response,
+                NextAgent = targetAgent
+            });
+
+        var prototype = new
+        {
+            sessionId = "10",
+            responses = new [] { new {type = "a", timeStamp = DateTime.Now, from = "a", next = "b", message = ""} }
+        };
+
+        var agentResponse = await GetResponseAs(apiResponse, prototype);
+        Context.Items["InstanceId"] = agentResponse.sessionId;
+
+        //first response will be a question to the user. Subsequent ones are the agent chit-chat.
+        //so let's run in reverse order, and broadcast them out
+        var question = agentResponse.responses.First();
+        foreach (var responseMessage in agentResponse.responses.Reverse())
+        {
+            await AgentChitChat(Context.ConnectionId, responseMessage.from, responseMessage.next,
+                responseMessage.message, responseMessage.timeStamp);
+            
+        }
+        
+        await AskForUserInput(Context.ConnectionId, question.timeStamp, question.from, question.message, Guid.NewGuid().ToString());
+        _logger.LogInformation("Chat updated. InstanceId: {instanceId}. ConnectionId: {connectionId}", Context.ConnectionId, Context.ConnectionId);
+    }
+
+
+    
+    private static async Task<T> GetResponseAs<T>(HttpResponseMessage response, T prototype)
+    {
+        return (await JsonSerializer.DeserializeAsync<T>(await response.Content.ReadAsStreamAsync()))!;
+    }
+
 }

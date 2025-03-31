@@ -47,6 +47,7 @@ export default function ({connection, msgs, story, updatedStory}: ChatProps) {
     const [questionId, setQuestionId] = useState<string | null>(null)
     const [targetAgent, setTargetAgent ] = useState<string | null>(null)
     const [isChatting, setIsChatting] = useState(false)
+    const [isSk, setIsSk] = useState(false)
 
     useEffect(() => {
 
@@ -69,10 +70,17 @@ export default function ({connection, msgs, story, updatedStory}: ChatProps) {
         </div>
         <div className="control">
             <button type={'button'} className={'button is-info'} onClick={() => {
-                connection!.invoke('UserResponse', targetAgent, msg, questionId)
+                const capturedQuestion = questionId
+                connection!.invoke(isSk ? 'UserResponseSemanticKernel' : 'UserResponse', targetAgent, msg, questionId)
                     .then(() => console.log('message sent'))
-                    .then(() => setQuestionId(null))
-                    .then(() => setTargetAgent(null))
+                    .then(() => {
+                        //timing issue with the signalr new question asked before we clean out the old question.
+                        if (capturedQuestion !== questionId) {
+                            setQuestionId(null);
+                            setTargetAgent(null);
+                            setMsg('');
+                        }
+                    })
                     .catch(e => console.log(e))
             }}>Reply
             </button>
@@ -81,12 +89,20 @@ export default function ({connection, msgs, story, updatedStory}: ChatProps) {
 
     const updateButton = story === updatedStory ? <div/> : <div>
         <button type={'button'} className={'button'} onClick={() => {
+            const capturedQuestion = questionId
             const storyPatch = generateChangeMessages(story, updatedStory)
             console.log('Patch:: ', storyPatch)
             const storyPatchString = storyPatch.reduce((acc, curr) => acc + curr + '\n', '')
             connection!.invoke('DiffResponse', storyPatchString, questionId)
                 .then(() => console.log('User edit sent'))
-                .then(() => setQuestionId(null))
+                .then(() => setMsg(''))
+                .then(() => {
+                    //timing issue with the signalr new question asked before we clean out the old question.
+                    if (capturedQuestion !== questionId) {
+                        setQuestionId(null);
+                        setTargetAgent(null);
+                    }
+                })
                 .catch(e => console.log(e))
         }}>Update from edits
         </button>
@@ -96,8 +112,18 @@ export default function ({connection, msgs, story, updatedStory}: ChatProps) {
         connection!.invoke('NewChat')
             .then(() => console.log('message sent'))
             .then(() => setIsChatting(true))
+            .then(() => setIsSk(false))
             .catch(e => console.log(e))
     }}>Start New Story
+    </button>
+
+    const newChatSemanticKernel = !isChatting && <button type={"button"} className={'button'} onClick={() => {
+        connection!.invoke('NewChatSemanticKernel')
+            .then(() => console.log('message sent'))
+            .then(() => setIsSk(true))
+            .then(() => setIsChatting(true))
+            .catch(e => console.log(e))
+    }}>Start New Story SK
     </button>
 
     const messageList = (<ul className={"list-group"}>
@@ -106,7 +132,7 @@ export default function ({connection, msgs, story, updatedStory}: ChatProps) {
 
     return <div>
         <h3 className={'title'}>Story Chat</h3>
-        {newChat}
+        {newChat}{newChatSemanticKernel}
         {messageList}
         {question}
         {updateButton}
