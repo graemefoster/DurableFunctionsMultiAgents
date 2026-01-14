@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@mdxeditor/editor": "^3.21.2",
+    "@mdxeditor/editor": "^3.49.2",
     "@microsoft/signalr": "^8.0.7",
     "@types/diff": "^7.0.1",
     "bulma": "^1.0.3",
